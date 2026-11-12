@@ -1,0 +1,7 @@
+# Arm B' — A/A CONTROL (more dedicated static ISP, same grade as Arm B)
+# Vendor: PinnedIP (buy alongside Arm B, keep the IPs separate from Arm B)
+# Purpose: measures the noise floor. If B vs B' differ by X%, an A vs B gap of X% is noise.
+# Optional on a very first pass; include it if you can.
+
+# example line:
+# user-bp-1:pass-bp-1@isp.pinnedip.example:8080

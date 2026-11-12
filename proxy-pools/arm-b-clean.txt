@@ -1,0 +1,7 @@
+# Arm B — CLEAN (dedicated static ISP)
+# Vendor: PinnedIP (manual, 1 IP minimum, ~$2.03/IP)
+# Format: login:password@host:port   (or host:port if IP-authed)
+# Replace the examples below with what you buy.
+
+# example line:
+# user-b-1:pass-b-1@isp.pinnedip.example:8080

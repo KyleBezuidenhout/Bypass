@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sign in — Contact Forms</title>
+<style>
+  :root{
+    --bg:#0b0c0f; --bg-2:#14161c;
+    --glass:rgba(255,255,255,.045); --glass-2:rgba(255,255,255,.07);
+    --hair:rgba(255,255,255,.10); --hair-2:rgba(255,255,255,.16);
+    --txt:#f2f3f5; --dim:#9aa0aa; --faint:#6b7280;
+    --acc:#0a84ff; --acc-soft:rgba(10,132,255,.10);
+    --err:#ff453a; --ok:#30d158;
+    --r:20px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--txt);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,sans-serif;
+    background:
+      radial-gradient(1100px 700px at 12% -10%, rgba(10,132,255,.16), transparent 60%),
+      radial-gradient(900px 620px at 100% 0%, rgba(120,90,255,.13), transparent 58%),
+      radial-gradient(700px 500px at 50% 120%, rgba(48,209,88,.07), transparent 60%),
+      linear-gradient(180deg,#0b0c0f,#000);
+    display:grid;place-items:center;padding:26px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:100%;max-width:392px}
+  .brand{
+    display:flex;align-items:center;gap:11px;margin:0 0 16px;justify-content:center;
+    color:var(--dim);font-size:12.5px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;
+  }
+  .pip{
+    width:8px;height:8px;border-radius:50%;background:var(--acc);
+    box-shadow:0 0 0 4px rgba(10,132,255,.16), 0 0 14px rgba(10,132,255,.7);
+  }
+  .card{
+    background:var(--glass);border:1px solid var(--hair);border-radius:var(--r);
+    padding:28px 26px;backdrop-filter:blur(34px) saturate(200%);
+    -webkit-backdrop-filter:blur(34px) saturate(200%);
+    box-shadow:0 30px 80px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.085);
+  }
+  h1{margin:0 0 4px;font-size:21px;letter-spacing:-.3px}
+  .sub{margin:0 0 20px;color:var(--dim);font-size:13px}
+  label{display:block;font-size:12px;color:var(--dim);margin:0 0 7px;font-weight:600}
+  .field{position:relative}
+  input{
+    width:100%;color:var(--txt);font:inherit;background:rgba(255,255,255,.05);
+    border:1px solid var(--hair);border-radius:13px;padding:13px 46px 13px 14px;outline:none;
+    transition:.16s ease;
+  }
+  input:focus{border-color:rgba(10,132,255,.7);background:rgba(10,132,255,.08);
+    box-shadow:0 0 0 4px rgba(10,132,255,.15)}
+  input::placeholder{color:var(--faint)}
+  .eye{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    background:none;border:0;color:var(--dim);cursor:pointer;padding:8px;border-radius:9px;
+    font-size:15px;line-height:1;
+  }
+  .eye:hover{color:var(--txt);background:rgba(255,255,255,.06)}
+  button.go{
+    width:100%;margin-top:16px;font:inherit;font-weight:600;color:#fff;cursor:pointer;
+    border:1px solid rgba(255,255,255,.14);border-radius:13px;padding:13px 16px;
+    background:linear-gradient(180deg,#3a9bff,#0a7ae8);
+    box-shadow:0 10px 26px rgba(10,132,255,.3), inset 0 1px 0 rgba(255,255,255,.28);
+    transition:.16s ease;
+  }
+  button.go:hover:not(:disabled){transform:translateY(-1px)}
+  button.go:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+  .msg{margin-top:14px;font-size:12.5px;min-height:17px}
+  .msg.err{color:var(--err)}
+  .msg.ok{color:var(--ok)}
+  .hint{margin-top:16px;color:var(--faint);font-size:11.5px;text-align:center}
+  .foot{margin-top:14px;color:var(--faint);font-size:11px;text-align:center}
+  .shake{animation:sh .34s ease}
+  @keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="pip"></span> Contact Forms · control panel</div>
+  <form class="card" id="f" autocomplete="on">
+    <h1>Sign in</h1>
+    <p class="sub">One shared password protects this panel.</p>
+
+    <label for="pw">Password</label>
+    <div class="field">
+      <input id="pw" type="password" placeholder="••••••••••" autocomplete="current-password" autofocus>
+      <button class="eye" type="button" id="eye" title="Show / hide">👁</button>
+    </div>
+
+    <button class="go" type="submit" id="go">Unlock</button>
+    <div class="msg" id="msg"></div>
+    <div class="hint" id="hint"></div>
+  </form>
+  <div class="foot">Connection goes straight to the machine running this panel.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+// Optional: set window.PANEL_API_BASE (and window.PANEL_HOME) when this page is
+// hosted away from the API. Backend-served login needs neither.
+const API = (window.PANEL_API_BASE || "").replace(/\/$/, "");
+const HOME = window.PANEL_HOME || (API || "");
+let tries = 0;
+
+$("eye").addEventListener("click", () => {
+  const i = $("pw");
+  i.type = i.type === "password" ? "text" : "password";
+  i.focus();
+});
+
+$("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pw = $("pw").value;
+  if (!pw) { flash("Enter the password.", "err"); return; }
+  $("go").disabled = true; $("go").textContent = "Checking…";
+  try {
+    const r = await fetch(API + "/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({password: pw})
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) {
+      flash("Unlocked. Loading…", "ok");
+      location.href = HOME + "/";
+      return;
+    }
+    tries++;
+    const left = typeof j.attempts_left === "number" ? ` (${j.attempts_left} attempts left)` : "";
+    flash((j.detail || "Wrong password") + left, "err");
+    $("pw").classList.add("shake");
+    setTimeout(() => $("pw").classList.remove("shake"), 360);
+    $("pw").select();
+  } catch (err) {
+    flash("Could not reach the panel.", "err");
+  } finally {
+    $("go").disabled = false; $("go").textContent = "Unlock";
+  }
+});
+
+function flash(text, cls){ $("msg").className = "msg " + (cls || ""); $("msg").textContent = text; }
+
+(async () => {
+  try {
+    const r = await fetch(API + "/auth/status", {credentials:"include"});
+    const j = await r.json();
+    if (j.auth === "off") $("hint").textContent = "Auth is currently off.";
+  } catch {}
+})();
+</script>
+</body>
+</html>

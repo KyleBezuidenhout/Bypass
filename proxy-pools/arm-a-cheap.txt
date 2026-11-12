@@ -1,0 +1,7 @@
+# Arm A — CHEAP (shared datacenter)
+# Vendor: Webshare (GSA has a built-in API importer for this one)
+# Format: login:password@host:port   (or host:port if IP-authed)
+# Replace the examples below with what you buy.
+
+# example line:
+# user-a-1:pass-a-1@gate.webshare.io:80

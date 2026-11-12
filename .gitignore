@@ -9,3 +9,19 @@ downloaded_files/
 *.egg-info/
 .pytest_cache/
 .DS_Store
+
+# panel password (secret)
+.panel-password
+
+# heavy local-only artifacts (not needed for the hosted UI/backend)
+_work/
+.pw/
+.sentry-native/
+ddg_raw.html
+panel.log
+panel.err
+*.out.txt
+*.err.txt
+x_main.png
+x_msgbox.png
+x_settings.png

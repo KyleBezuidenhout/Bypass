@@ -19,3 +19,8 @@ dotenv = ["python-dotenv>=1.0.0"]
 
 [tool.setuptools.packages.find]
 include = ["captcha_bypass*"]
+
+[tool.pytest.ini_options]
+# Without this, a bare `pytest` at the repo root also crawls unrelated checkouts
+# under _work/ (ghidra etc.), which is slow and errors on collection.
+testpaths = ["tests"]

@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Contact Forms — control panel</title>
+<style>
+  :root{
+    /* Apple dark system palette — layered greys, never flat black */
+    --txt:#ffffff;
+    --txt-2:rgba(255,255,255,.86);
+    --dim:rgba(235,235,245,.58);
+    --faint:rgba(235,235,245,.32);
+    --acc:#0a84ff;
+    --acc-soft:rgba(10,132,255,.16);
+    --hair:rgba(255,255,255,.085);
+    --hair-2:rgba(255,255,255,.16);
+    --hair-3:rgba(255,255,255,.24);
+    --glass:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.022));
+    --glass-2:linear-gradient(180deg,rgba(255,255,255,.095),rgba(255,255,255,.038));
+    --glass-3:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));
+    --ok:#30d158;
+    --warn:#ffd60a;
+    --bad:#ff453a;
+    --r:20px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;color:var(--txt-2);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",
+         "Helvetica Neue",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:-.01em;
+    background:
+      radial-gradient(1200px 760px at 10% -10%, #1c2029 0%, transparent 56%),
+      radial-gradient(1000px 680px at 102% 0%, #0f1e2a 0%, transparent 50%),
+      radial-gradient(900px 900px at 50% 118%, #14171d 0%, transparent 58%),
+      radial-gradient(700px 420px at 78% 88%, rgba(120,90,255,.05), transparent 70%),
+      linear-gradient(180deg,#07080c,#04050880),
+      #030407;
+    background-attachment:fixed;
+  }
+  /* frosted sheet behind everything for depth */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(620px 320px at 82% 8%, rgba(10,132,255,.11), transparent 70%),
+      radial-gradient(520px 280px at 8% 92%, rgba(120,90,255,.08), transparent 70%),
+      radial-gradient(460px 240px at 40% 40%, rgba(255,255,255,.022), transparent 75%);
+  }
+  /* very fine film grain so large black areas do not band */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.32;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  }
+  header,main,.tabs{position:relative;z-index:2}
+
+  header{
+    display:flex;align-items:center;gap:12px;padding:13px 22px;
+    border-bottom:1px solid var(--hair);
+    background:linear-gradient(180deg,rgba(24,27,34,.7),rgba(10,12,16,.58));
+    backdrop-filter:blur(40px) saturate(200%);
+    -webkit-backdrop-filter:blur(40px) saturate(200%);
+    position:sticky;top:0;z-index:20;
+  }
+  header h1{
+    font-size:15px;margin:0;font-weight:600;letter-spacing:-.022em;color:#fff;
+    text-shadow:0 1px 12px rgba(255,255,255,.14);
+  }
+  .pill{
+    font-size:11px;padding:3.5px 10px;border-radius:999px;
+    border:1px solid var(--hair);color:var(--dim);
+    background:rgba(255,255,255,.04);
+    backdrop-filter:blur(12px);
+  }
+  .pill.on{color:#9fe8b8;border-color:rgba(48,209,88,.34);background:rgba(48,209,88,.12)}
+  .pill.off{color:#ffb0aa;border-color:rgba(255,69,58,.34);background:rgba(255,69,58,.12)}
+
+  .tabs{display:flex;gap:6px;padding:16px 22px 0;flex-wrap:wrap}
+  .tab{
+    padding:7px 14px;border-radius:11px;font-size:13px;cursor:pointer;
+    color:var(--dim);border:1px solid transparent;transition:.16s ease;
+  }
+  .tab:hover{color:var(--txt);background:rgba(255,255,255,.05)}
+  .tab.active{
+    color:var(--txt);font-weight:600;
+    background:var(--glass-2);border-color:var(--hair-2);
+    backdrop-filter:blur(20px) saturate(160%);
+    box-shadow:0 6px 22px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.1);
+  }
+
+  main{
+    display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;
+    padding:18px 22px 60px;align-items:start;max-width:1560px;
+  }
+  @media(max-width:1060px){main{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--glass);
+    border:1px solid var(--hair);
+    border-radius:var(--r);
+    padding:18px;
+    backdrop-filter:blur(34px) saturate(200%);
+    -webkit-backdrop-filter:blur(34px) saturate(200%);
+    box-shadow:0 26px 70px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.085),
+               0 0 0 .5px rgba(255,255,255,.03);
+  }
+  .card h2{
+    font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;
+    color:var(--dim);margin:0 0 12px;font-weight:600;
+  }
+  b,strong{color:#fff;font-weight:600}
+  td b{color:#fff}
+
+  textarea,input,select{
+    width:100%;color:var(--txt);font:inherit;
+    background:rgba(255,255,255,.045);
+    border:1px solid var(--hair);border-radius:12px;
+    padding:10px 13px;outline:none;transition:.16s ease;
+    backdrop-filter:blur(12px);
+  }
+  textarea::placeholder,input::placeholder{color:var(--faint)}
+  textarea:focus,input:focus,select:focus{
+    border-color:rgba(10,132,255,.65);
+    background:rgba(10,132,255,.07);
+    box-shadow:0 0 0 3.5px rgba(10,132,255,.16);
+  }
+  select option{background:#14161c;color:var(--txt)}
+
+  button{
+    font:inherit;font-weight:600;color:#fff;cursor:pointer;
+    border:1px solid rgba(255,255,255,.14);border-radius:12px;
+    padding:10px 16px;
+    background:linear-gradient(180deg,#3a9bff,#0a7ae8);
+    box-shadow:0 8px 22px rgba(10,132,255,.28), inset 0 1px 0 rgba(255,255,255,.28);
+    transition:.16s ease;
+  }
+  button.ghost{
+    background:var(--glass-2);color:var(--txt);
+    border-color:var(--hair-2);box-shadow:0 6px 18px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.09);
+    backdrop-filter:blur(18px);
+  }
+  button.sm{padding:6px 12px;font-size:12.5px;border-radius:10px}
+  button:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+  button:hover:not(:disabled){transform:translateY(-1px)}
+  button:active:not(:disabled){transform:translateY(0) scale(.985)}
+
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+
+  .diff{
+    border:1px solid var(--hair);border-radius:14px;overflow:hidden;margin-top:12px;
+    background:rgba(0,0,0,.28);backdrop-filter:blur(14px);
+  }
+  .diff div{
+    padding:8px 13px;border-bottom:1px solid var(--hair);
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;
+  }
+  .diff div:last-child{border-bottom:0}
+  .diff .k{color:var(--dim)}
+  .old{color:#ff8f88;text-decoration:line-through;opacity:.8}
+  .new{color:#7ee2a0}
+
+  .group{
+    margin-bottom:9px;border:1px solid var(--hair);border-radius:15px;overflow:hidden;
+    background:rgba(255,255,255,.022);
+  }
+  .group>summary{
+    padding:11px 15px;cursor:pointer;font-weight:600;font-size:13px;
+    background:var(--glass-2);list-style:none;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .group>summary::-webkit-details-marker{display:none}
+  .group>summary .n{color:var(--faint);font-weight:400;font-size:11px}
+  .fld{
+    display:grid;grid-template-columns:1fr 175px;gap:10px;align-items:center;
+    padding:10px 15px;border-top:1px solid var(--hair);
+  }
+  .fld:hover{background:rgba(255,255,255,.028)}
+  .fld label{font-size:13px;cursor:pointer}
+  .fld .sub{color:var(--dim);font-size:11.5px;margin-top:3px;line-height:1.45}
+  .fld input[type=text],.fld input[type=number],.fld select{padding:6px 10px;font-size:13px}
+  .fld .ctl{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+  .fld .unit{color:var(--faint);font-size:11.5px;white-space:nowrap}
+  .sw{
+    position:relative;width:46px;height:26px;flex:none;border-radius:999px;cursor:pointer;
+    background:rgba(255,255,255,.12);border:1px solid var(--hair);
+    transition:.2s cubic-bezier(.3,.8,.3,1);
+  }
+  .sw.on{background:linear-gradient(180deg,#3a9bff,#0a7ae8);border-color:rgba(255,255,255,.28);
+         box-shadow:0 4px 14px rgba(10,132,255,.4), inset 0 1px 0 rgba(255,255,255,.3)}
+  .sw::after{
+    content:"";position:absolute;top:2.5px;left:2.5px;width:19px;height:19px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);
+    transition:.2s cubic-bezier(.3,.8,.3,1);
+  }
+  .sw.on::after{transform:translateX(20px)}
+
+  .muted{color:var(--dim);font-size:12.5px}
+  .err{color:#ff8f88;font-size:12.5px;white-space:pre-wrap}
+  .okmsg{color:#7ee2a0;font-size:12.5px}
+  pre,code{
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  pre{
+    background:rgba(0,0,0,.3);border:1px solid var(--hair);border-radius:12px;
+    padding:12px;overflow:auto;font-size:12px;max-height:280px;
+  }
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--hair)}
+  tr:hover td{background:rgba(255,255,255,.026)}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .tag{
+    font-size:9.5px;padding:2px 7px;border-radius:6px;letter-spacing:.3px;
+    background:rgba(255,255,255,.07);color:var(--dim);border:1px solid var(--hair);
+    text-transform:uppercase;font-weight:600;
+  }
+  .tag.warn{color:#ffe07a;border-color:rgba(255,214,10,.3);background:rgba(255,214,10,.1)}
+  .tag.key{color:#9fc4ff;border-color:rgba(10,132,255,.3);background:var(--acc-soft)}
+  .kw{
+    display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0;
+    background:rgba(255,255,255,.05);border:1px solid var(--hair);
+    border-radius:999px;padding:4px 6px 4px 12px;font-size:12.5px;
+  }
+  .kw button{background:transparent;border:0;box-shadow:none;color:var(--faint);padding:0 4px;font-weight:700}
+  .kw button:hover{color:var(--bad);transform:none}
+  .hidden{display:none}
+  .notice{
+    border-left:3px solid var(--warn);background:rgba(255,214,10,.07);
+    padding:11px 13px;border-radius:0 12px 12px 0;font-size:12.5px;margin-top:10px;
+    border-top:1px solid var(--hair);border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);
+    backdrop-filter:blur(14px);
+  }
+  .notice.info{border-left-color:var(--acc);background:var(--acc-soft)}
+  .notice.warn{border-left-color:var(--warn)}
+  .notice.ok{border-left-color:var(--ok);background:rgba(48,209,88,.08)}
+  .notice b{color:#fff}
+
+  /* ---------------- glossary affordances ---------------- */
+  .dot{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:15px;height:15px;border-radius:50%;margin-left:6px;flex:none;
+    font-size:10px;font-weight:700;color:var(--dim);cursor:help;
+    border:1px solid var(--hair-2);background:rgba(255,255,255,.06);
+    vertical-align:middle;transition:.15s ease;
+  }
+  .dot:hover{color:#fff;background:rgba(10,132,255,.35);border-color:rgba(10,132,255,.6);
+             box-shadow:0 0 0 4px rgba(10,132,255,.14)}
+  .gterm{
+    color:#cfe0ff;border-bottom:1px dashed rgba(207,224,255,.4);
+    cursor:help;transition:.14s ease;
+  }
+  .gterm:hover{color:#fff;border-bottom-color:#fff;background:rgba(10,132,255,.14)}
+
+  #bubble{
+    position:fixed;z-index:999;max-width:340px;pointer-events:none;
+    padding:13px 15px;border-radius:16px;opacity:0;
+    transform:translateY(-5px) scale(.98);
+    background:linear-gradient(180deg,rgba(44,47,56,.94),rgba(20,22,28,.96));
+    border:1px solid var(--hair-2);
+    backdrop-filter:blur(30px) saturate(190%);
+    -webkit-backdrop-filter:blur(30px) saturate(190%);
+    box-shadow:0 26px 70px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.14);
+    transition:opacity .13s ease, transform .13s ease;
+  }
+  #bubble.on{opacity:1;transform:translateY(0) scale(1)}
+  #bubble .b-t{font-weight:650;font-size:13px;letter-spacing:-.01em;margin-bottom:5px}
+  #bubble .b-s{font-size:12.5px;color:#e9ecf2;margin-bottom:6px}
+  #bubble .b-l{font-size:12px;color:var(--dim);line-height:1.5}
+  #bubble .b-tip{
+    font-size:12px;color:#a8c8ff;margin-top:8px;padding-top:8px;
+    border-top:1px solid var(--hair);
+  }
+  .gloss-item{padding:7px 0;border-bottom:1px solid var(--hair);cursor:help}
+  .gloss-item:last-child{border-bottom:0}
+  .gloss-item b{font-weight:600;font-size:12.5px}
+  .gloss-item i{display:block;color:var(--dim);font-size:11.5px;font-style:normal;margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Contact Forms</h1>
+  <span id="status" class="pill">connecting…</span>
+  <span id="engine" class="pill"></span>
+  <span style="flex:1"></span>
+  <button class="ghost sm" onclick="showTab('glossary')">Jargon</button>
+  <button class="ghost sm" onclick="loadAll()">Refresh</button>
+  <a class="ghost sm" id="signout" href="/logout" style="display:none;text-decoration:none;padding:6px 12px;border-radius:10px;border:1px solid var(--hair-2);background:var(--glass-2)">Sign out</a>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="run" onclick="showTab('run')">Run</div>
+  <div class="tab" data-tab="people" onclick="showTab('people')">Per-person messages</div>
+  <div class="tab" data-tab="project" onclick="showTab('project')">Project &amp; proxies</div>
+  <div class="tab" data-tab="sizing" onclick="showTab('sizing')">Proxies &amp; cost</div>
+  <div class="tab" data-tab="settings" onclick="showTab('settings')">All settings</div>
+  <div class="tab" data-tab="glossary" onclick="showTab('glossary')">Glossary</div>
+</div>
+
+<main>
+  <section>
+    <!-- ================= RUN ================= -->
+    <div id="tab-run">
+      <div class="card">
+        <h2>Tell it what you want</h2>
+        <textarea id="nl" rows="3" placeholder="e.g. set threads to 25, timeout 300, skip dupecheck, and explain what 'use real captcha ip' does"></textarea>
+        <div class="row" style="margin-top:11px">
+          <button onclick="planNL()">Plan changes</button>
+          <button class="ghost" onclick="planNL(true)" id="applyBtn" disabled>Apply</button>
+          <span class="muted" id="nlMsg"></span>
+        </div>
+        <div id="diff"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>What runs where <span class="dot" data-gloss="scraping">?</span></h2>
+        <p class="muted" style="margin-top:-4px">
+          Contact-finding happens in three stages. You can put
+          <span class="gterm" data-gloss="proxy">proxies</span> on any of them,
+          independently, from the <b>Project &amp; proxies</b> tab.
+        </p>
+        <table style="margin-top:11px">
+          <tr><th>Stage</th><th>What it does</th><th>Proxies matter</th></tr>
+          <tr><td><span class="gterm" data-gloss="scraping">Scraping</span></td>
+              <td class="muted">Asks search engines for candidate sites</td>
+              <td><span class="tag warn">highest risk</span></td></tr>
+          <tr><td><span class="gterm" data-gloss="parsing">Parsing</span></td>
+              <td class="muted">Loads each site, finds its contact form</td>
+              <td><span class="tag">medium</span></td></tr>
+          <tr><td><span class="gterm" data-gloss="sending">Sending</span></td>
+              <td class="muted">Fills the form and submits your message</td>
+              <td><span class="tag">medium</span></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= PEOPLE ================= -->
+    <div id="tab-people" class="hidden">
+      <div class="card">
+        <h2>One unique message per website</h2>
+        <p class="muted glossy" style="margin-top:-4px">
+          Paste a list where each line is a website and the message to send to it.
+          GSA's own importer turns each row into a separate submission using the
+          csv macro — this is a built-in feature, not a hack.
+        </p>
+        <textarea id="ppl" rows="8" placeholder="Paste any of these:
+website.com, Hi there — loved your robotics page
+website2.com, Hello! Quick question about your automation stack
+
+or CSV with a header row:
+URL,Message,Subject
+https://a.com,&quot;Hi A&quot;,Hello
+https://b.com,&quot;Hi B&quot;,Hello   (or tab-separated straight out of Excel)"></textarea>
+        <div class="row" style="margin-top:11px">
+          <input id="pplName" placeholder="batch name (e.g. robotics week 1)" style="flex:1;min-width:200px" />
+          <select id="pplProject" style="flex:1;min-width:180px"></select>
+          <button class="ghost" onclick="previewImport()">Preview</button>
+          <button onclick="applyImport(true)" id="pplApply" disabled>Save &amp; wire to project</button>
+        </div>
+        <div id="pplOut"></div>
+      </div>
+    </div>
+
+    <!-- ================= PROJECT ================= -->
+    <div id="tab-project" class="hidden">
+      <div class="card">
+        <h2>Project <span class="dot" data-gloss="proxy">?</span></h2>
+        <div class="row">
+          <select id="projSel" style="flex:1" onchange="loadProject()"></select>
+          <span class="muted" id="projStat"></span>
+        </div>
+        <div id="projOut" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- ================= SIZING ================= -->
+    <div id="tab-sizing" class="hidden">
+      <div class="card">
+        <h2>Cost calculator · how many IPs and what they cost</h2>
+        <p class="muted" style="margin-top:-4px">
+          Per-IP rates read from the vendors' own pricing pages. Dedicated means
+          one IP per customer with <b>unmetered bandwidth</b> — the grade you want for sending.
+        </p>
+        <div class="row" style="margin-top:10px">
+          <label class="muted">How many proxies</label>
+          <input id="ispCount" type="number" value="40" min="1" max="5000" style="width:110px"
+                 onchange="loadIspPrice(Number(this.value))" oninput="loadIspPrice(Number(this.value))" />
+          <span class="muted">× premium static residential IPs</span>
+        </div>
+        <div id="ispOut" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>What grade of IP to buy <span class="dot" data-gloss="ip grade">?</span></h2>
+        <p class="muted" style="margin-top:-4px">
+          Coverage = roughly what share of sites that grade gets through. Your real sending
+          success is set by the <span class="gterm" data-gloss="hostile site">hostile-site</span> number.
+        </p>
+        <div id="gradeOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Is farming extra TinyFish accounts worth it? <span class="dot" data-gloss="free allowance">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Accounts <input id="farmN" type="number" value="3" min="1" max="20" step="1" style="width:80px"></label>
+          <button onclick="loadFarm(Number($('farmN').value||1))">Recalculate</button>
+        </div>
+        <div id="farmOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Are cheap proxies actually useless? what do you really lose <span class="dot" data-gloss="deliverability">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Forms / day <input id="cheapSends" type="number" value="5000" min="100" step="500" style="width:110px"></label>
+          <button onclick="loadCheap()">Recalculate</button>
+        </div>
+        <div id="cheapOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>How to split-test proxy grade without fooling yourself <span class="dot" data-gloss="confound">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Forms / day <input id="stSends" type="number" value="5000" min="100" step="500" style="width:110px"></label>
+          <label>Detect a gap of (pp) <input id="stDelta" type="number" value="10" min="1" max="40" step="1" style="width:90px"></label>
+          <button onclick="loadSplit()">Design the test</button>
+        </div>
+        <div id="stOut" style="margin-top:12px"></div>
+        <div id="prOut" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Where every dollar goes — and why <span class="dot" data-gloss="deliverability">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Forms / day <input id="spSends" type="number" value="5000" min="100" step="500" style="width:110px"></label>
+          <button onclick="loadSpend()">Show the picture</button>
+        </div>
+        <div id="spOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Cheapest test that still proves something <span class="dot" data-gloss="confound">?</span></h2>
+        <div id="mbOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Do captchas replace our proxies? do parse proxies need to be good <span class="dot" data-gloss="captcha solve hop">?</span></h2>
+        <div id="sgOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Buying at IPNux? read this before you pay <span class="dot" data-gloss="dedicated ip">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>How many IPs <input id="ipxN" type="number" value="33" min="1" step="1" style="width:90px"></label>
+          <button onclick="loadIpnux()">Recalculate</button>
+        </div>
+        <div id="ipxOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Would rotating residential (per&nbsp;GB) work instead? <span class="dot" data-gloss="sticky session">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Forms / day <input id="rotSends" type="number" value="5000" min="100" step="500" style="width:110px"></label>
+          <label>KB / page <input id="rotKb" type="number" value="80" min="10" step="10" style="width:80px"></label>
+          <button onclick="loadRotating()">Recalculate</button>
+        </div>
+        <div id="rotOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>What proxies to buy, by daily send volume <span class="dot" data-gloss="dedicated ip">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Forms / day <input id="pxSends" type="number" value="5000" min="100" step="500" style="width:110px"></label>
+          <button onclick="loadProxyBuy()">Recalculate</button>
+        </div>
+        <div id="pxOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Farm accounts needed for 10,000 forms/day <span class="dot" data-gloss="usable thread">?</span></h2>
+        <div class="row" style="margin-top:12px">
+          <label>Forms / day <input id="capSends" type="number" value="10000" min="100" step="500" style="width:110px"></label>
+          <label>Find-rate % <input id="capFound" type="number" value="60" min="5" max="100" step="5" style="width:80px"></label>
+          <button onclick="loadCapacity()">Recalculate</button>
+        </div>
+        <div id="capOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Farming without getting flagged — do you need different IPs? <span class="dot" data-gloss="account farm">?</span></h2>
+        <div id="farmSafe" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Would TinyFish be a better parser? <span class="dot" data-gloss="external parser">?</span></h2>
+        <div id="tinyOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Your setup: imported list → parse &amp; send <span class="dot" data-gloss="imported list">?</span></h2>
+        <div id="importedOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>IP fallback: escalate on failure, shrink as price rises <span class="dot" data-gloss="ip fallback">?</span></h2>
+        <div id="fallbackOut" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>1 · Where to buy "unlimited residential" <span class="dot" data-gloss="unlimited residential">?</span></h2>
+        <div id="szAdvice"></div>
+        <h2 style="margin-top:18px">Providers, with the real billing unit</h2>
+        <div id="szProviders"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>2 · Install them into GSA</h2>
+        <div id="szSteps"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>3 · Which 2 captcha subscriptions to buy <span class="dot" data-gloss="layer 2 captcha">?</span></h2>
+        <div id="szLayer2"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>How many proxies, by daily volume</h2>
+        <p class="muted" style="margin-top:-4px">
+          Pick a volume. Numbers come from GSA's own shipped service prices and your
+          local proxy-source list; the rules of thumb are labelled.
+        </p>
+        <div class="row">
+          <label class="muted">Sends per day</label>
+          <input id="szVol" type="number" value="1000" min="10" style="width:120px" onchange="loadSizing()" />
+          <select id="szTier" onchange="loadSizing()" style="width:250px"></select>
+          <span class="muted" id="szSrc"></span>
+        </div>
+        <div id="szProxies" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Captcha: what it costs you</h2>
+        <div id="szCaptcha"></div>
+      </div>
+    </div>
+
+    <!-- ================= SETTINGS ================= -->
+    <div id="tab-settings" class="hidden">
+      <div class="card">
+        <h2>Settings <span class="muted" id="fldCount"></span></h2>
+        <div class="row" style="margin-bottom:12px">
+          <button class="ghost sm" onclick="fillDefaults()">Fill blanks with defaults</button>
+          <button class="ghost sm" onclick="fillDefaults(true)">Fill everything with defaults</button>
+          <button class="sm" onclick="applyStaged()" id="saveFields" disabled>Save staged edits</button>
+          <span class="muted" id="stageMsg">every field is editable</span>
+        </div>
+        <div id="fields"></div>
+      </div>
+    </div>
+
+    <!-- ================= GLOSSARY ================= -->
+    <div id="tab-glossary" class="hidden">
+      <div class="card">
+        <h2>Every term, decoded <span class="muted" id="glossCount"></span></h2>
+        <p class="muted">Hover any term anywhere in the panel to see this same explanation.</p>
+        <input id="glossFilter" placeholder="filter terms…" style="margin-top:10px"
+               oninput="renderGlossary()" />
+        <div id="glossList" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h2>App</h2>
+      <div id="health" class="muted">…</div>
+      <div class="row" style="margin-top:12px">
+        <button class="ghost sm" onclick="act('start')">Start</button>
+        <button class="ghost sm" onclick="act('stop')">Stop</button>
+        <button class="ghost sm" onclick="act('restart')">Restart</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>What does this do?</h2>
+      <input id="ref" placeholder="click any field, or type a ref"
+             onkeydown="if(event.key==='Enter')explain()" />
+      <button class="ghost sm" style="margin-top:9px" onclick="explain()">Explain</button>
+      <div id="explainOut" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>How to use this page</h2>
+      <div class="muted" style="line-height:1.6">
+        Anything with a <span class="dot">?</span> or a
+        <span class="gterm" data-gloss="usable thread">dashed underline</span>
+        explains itself when you hover it. Nothing is written to disk until you press a
+        Save or Apply button, and every write is
+        <span class="gterm" data-gloss="idempotent">idempotent</span>.
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div id="bubble"></div>
+
+<script>
+// Point this at the backend when the UI is served from a different origin
+// (e.g. this file on Vercel calling a Cloudflare Tunnel on your PC). Leave it
+// empty when the backend serves the UI itself — the default, and simplest.
+//   <script>window.PANEL_API_BASE = "https://api.yourdomain.com";</script>
+const API = (window.PANEL_API_BASE || "").replace(/\/$/, "");
+const LOGIN_URL = API ? API + "/login" : "/login";
+let SCHEMA = [], VALUES = {}, DEFAULTS = {}, MISSING = {}, dirty = {}, PROJECTS = [], CUR_PROJECT = null;
+let GLOSS = {}, GLOSS_ALIAS = {}, GLOSS_TERMS = [], GLOSS_RE = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function api(path, opts) {
+  const r = await fetch(API + path, Object.assign({credentials:'include', headers:{'Content-Type':'application/json'}}, opts));
+  if (r.status === 401 && !location.pathname.startsWith("/login")) {
+    location.href = LOGIN_URL;          // expired or missing session
+    throw new Error("session expired");
+  }
+  const t = await r.text();
+  let j; try { j = t ? JSON.parse(t) : {}; } catch { j = {raw:t}; }
+  if (!r.ok) throw new Error(j.detail || j.raw || r.statusText);
+  return j;
+}
+
+function showTab(name){
+  for (const t of document.querySelectorAll(".tab"))
+    t.classList.toggle("active", t.dataset.tab === name);
+  for (const id of ["run","people","project","sizing","settings","glossary"])
+    $("tab-" + id).classList.toggle("hidden", id !== name);
+  if (name === "sizing" && !SZ_TIERS.length) loadSizing();
+  if (name === "glossary") renderGlossary();
+}
+
+/* ---------------------------------------------------------------- glossary */
+async function loadGlossary(){
+  try {
+    const g = await api("/glossary");
+    GLOSS_TERMS = g.terms;
+    for (const t of g.terms) GLOSS[t.key.toLowerCase()] = t;
+    GLOSS_ALIAS = g.index;
+    // longest first so "usable thread" wins over "thread"
+    const alts = Object.keys(GLOSS_ALIAS).filter(k => k.length > 2)
+                       .sort((a,b) => b.length - a.length)
+                       .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    GLOSS_RE = new RegExp("(?<![\\w-])(" + alts.join("|") + ")(?![\\w-])", "gi");
+    $("glossCount").textContent = `— ${g.count} terms`;
+  } catch {}
+}
+
+function entryFor(term){
+  const k = GLOSS_ALIAS[String(term).trim().toLowerCase()];
+  return k ? GLOSS[k.toLowerCase()] : null;
+}
+
+function dot(term, extra){
+  return `<span class="dot" data-gloss="${esc(term)}">${extra || "?"}</span>`;
+}
+
+/* turn known jargon inside prose into hoverable spans */
+function linkify(root){
+  if (!GLOSS_RE) return;
+  for (const el of root.querySelectorAll(".glossy")) {
+    if (el.dataset.linked === "1") continue;
+    const raw = el.textContent;
+    el.innerHTML = esc(raw).replace(GLOSS_RE, (m) => {
+      const e = entryFor(m);
+      return e ? `<span class="gterm" data-gloss="${esc(e.key)}">${m}</span>` : m;
+    });
+    el.dataset.linked = "1";
+  }
+}
+
+function renderGlossary(){
+  const q = ($("glossFilter").value || "").toLowerCase();
+  const list = GLOSS_TERMS.filter(t =>
+    !q || t.key.includes(q) || t.short.toLowerCase().includes(q));
+  $("glossList").innerHTML = list.map(t => `
+    <div class="gloss-item" data-gloss="${esc(t.key)}">
+      <b>${esc(t.title || t.key)}</b><i>${esc(t.short)}</i>
+    </div>`).join("") || `<div class="muted">no match</div>`;
+}
+
+/* floating bubble, driven entirely by the backend glossary */
+let bubOn = false;
+function showBubble(term, anchor){
+  const e = entryFor(term); if (!e) return;
+  const b = $("bubble");
+  b.innerHTML =
+    `<div class="b-t">${esc(e.title || e.key)}</div>` +
+    `<div class="b-s">${esc(e.short)}</div>` +
+    (e.long ? `<div class="b-l">${esc(e.long)}</div>` : "") +
+    (e.tip ? `<div class="b-tip">${esc(e.tip)}</div>` : "");
+  b.classList.add("on"); bubOn = true;
+  const r = anchor.getBoundingClientRect();
+  const bw = b.offsetWidth, bh = b.offsetHeight;
+  let left = r.left;
+  let top = r.bottom + 10;
+  if (left + bw > innerWidth - 12) left = innerWidth - bw - 12;
+  if (left < 12) left = 12;
+  if (top + bh > innerHeight - 12) top = r.top - bh - 10;
+  if (top < 12) top = 12;
+  b.style.left = left + "px";
+  b.style.top = top + "px";
+}
+function hideBubble(){ if (bubOn) { $("bubble").classList.remove("on"); bubOn = false; } }
+
+document.addEventListener("mouseover", ev => {
+  const t = ev.target.closest("[data-gloss]");
+  if (t) showBubble(t.dataset.gloss, t); else hideBubble();
+});
+document.addEventListener("mouseout", ev => {
+  if (ev.target.closest("[data-gloss]")) hideBubble();
+});
+
+/* ---------------------------------------------------------------- load */
+async function loadAll(){
+  try {
+    const h = await api("/health");
+    $("status").className = "pill " + (h.app_running ? "on" : "off");
+    $("status").textContent = h.app_running ? "app running" : "app stopped";
+    $("health").innerHTML =
+      `<div>config: <code>${esc(h.config_path)}</code></div>
+       <div>exists: <b>${h.config_exists}</b></div>
+       <div>pids: ${(h.app_pids||[]).join(", ") || "—"}</div>`;
+  } catch(e){ $("status").className="pill off"; $("status").textContent="api offline"; }
+
+  try {
+    const e = await api("/nl/engine");
+    $("engine").textContent = e.llm_configured ? ("llm: " + e.model) : "llm: rules fallback";
+  } catch {}
+
+  try {
+    const d = await api("/settings/defaults");
+    DEFAULTS = d.defaults; MISSING = d.missing;
+  } catch {}
+
+  try {
+    SCHEMA = (await api("/schema")).fields;
+    VALUES = (await api("/settings")).values;
+    renderFields();
+  } catch(e){ $("fields").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+
+  try {
+    PROJECTS = (await api("/projects")).projects;
+    const opts = PROJECTS.map(p => `<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");
+    $("projSel").innerHTML = opts || `<option value="">no projects found</option>`;
+    $("pplProject").innerHTML = opts || `<option value="">no projects</option>`;
+    if (PROJECTS.length) loadProject();
+  } catch(e){ $("projOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+
+  linkify(document);
+}
+
+/* ---------------------------------------------------------------- settings grid */
+function renderFields(){
+  const groups = {};
+  for (const f of SCHEMA) (groups[f.group] ||= []).push(f);
+  const order = ["performance","captcha","proxies","filtering","scheduler","notifications","interface","misc","columns"];
+  const keys = Object.keys(groups).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+  $("fldCount").textContent = `— ${SCHEMA.length} fields`;
+  $("fields").innerHTML = keys.map(g => `
+    <details class="group" ${["performance","captcha"].includes(g)?"open":""}>
+      <summary>${esc(g)} <span class="n">${groups[g].length}</span></summary>
+      ${groups[g].map(renderOne).join("")}
+    </details>`).join("");
+  linkify($("fields"));
+}
+
+function curValue(f){
+  const [sec,key] = f.ref.split("::");
+  const v = (VALUES[sec]||{})[key];
+  return (v === undefined || v === null) ? DEFAULTS[f.ref] : v;
+}
+
+function renderOne(f){
+  const val = curValue(f);
+  const id = "f_" + btoa(f.ref).replace(/[^a-zA-Z0-9]/g,"");
+  const tags = `<span class="tag">${esc(f.confidence)}</span>` +
+               (f.essential ? ` <span class="tag key">key</span>` : "") +
+               (f.advanced ? ` <span class="tag">advanced</span>` : "");
+  const label = `<label for="${id}" class="glossy">${esc(f.key)} ${tags}
+      <div class="sub">${esc(f.help)}</div></label>`;
+  let ctl;
+  if (f.type === "bool") {
+    ctl = `<div class="ctl"><div class="sw ${val?"on":""}" id="${id}" onclick="toggle('${f.ref}',this)"></div></div>`;
+  } else if (f.type === "int") {
+    ctl = `<div class="ctl"><input id="${id}" type="number" value="${val ?? ""}"
+            ${f.allowed?`list="al_${id}"`:""}
+            ${f.range?`min="${f.range[0]}" max="${f.range[1]}"`:""}
+            onchange="set('${f.ref}', Number(this.value))" />
+            ${f.unit?`<span class="unit">${esc(f.unit)}</span>`:""}
+            ${f.allowed?`<datalist id="al_${id}">${f.allowed.map(a=>`<option value="${a}">`).join("")}</datalist>`:""}</div>`;
+  } else {
+    ctl = `<div class="ctl"><input id="${id}" type="text" value="${esc(val ?? "")}"
+            onchange="set('${f.ref}', this.value)" /></div>`;
+  }
+  return `<div class="fld">${label}${ctl}</div>`;
+}
+
+function set(ref,val){ dirty[ref]=val; stage(); }
+function toggle(ref,el){
+  const on = !el.classList.contains("on");
+  el.classList.toggle("on", on);
+  dirty[ref] = on; stage();
+}
+function stage(){
+  const n = Object.keys(dirty).length;
+  $("stageMsg").textContent = n ? `${n} edit(s) staged` : "every field is editable";
+  $("saveFields").disabled = !n;
+}
+
+function fillDefaults(all){
+  const src = all ? DEFAULTS : MISSING;
+  let n = 0;
+  for (const [ref,val] of Object.entries(src)) { dirty[ref]=val; n++; }
+  for (const [ref,val] of Object.entries(src)) {
+    const f = SCHEMA.find(x=>x.ref===ref); if(!f) continue;
+    VALUES[f.section] ||= {}; VALUES[f.section][f.key] = val;
+  }
+  renderFields(); stage();
+  $("stageMsg").textContent = `${n} value(s) staged — nothing written yet`;
+}
+
+/* ---------------------------------------------------------------- nl */
+function planNL(apply){ return plan(apply); }
+async function plan(apply){
+  const text = $("nl").value.trim();
+  if (!text && !Object.keys(dirty).length) return;
+  $("nlMsg").textContent = "thinking…"; $("diff").innerHTML = "";
+  try {
+    const res = await api("/nl/plan", {method:"POST", body: JSON.stringify({
+      text, prefer:"auto", apply: !!apply
+    })});
+    let html = "";
+    if (res.explanation) html += `<div class="muted" style="margin-top:10px">${esc(res.explanation)}</div>`;
+    html += `<div class="diff">` + (res.changes.length
+      ? res.changes.map(c=>`<div><span class="k">[${esc(c.section)}] ${esc(c.key)}</span>: <span class="old">${esc(c.old)}</span> → <span class="new">${esc(c.new)}</span></div>`).join("")
+      : `<div class="muted">no changes</div>`) + `</div>`;
+    if (res.unknown?.length) html += `<div class="err" style="margin-top:8px">unknown: ${res.unknown.map(esc).join(", ")}</div>`;
+    if (res.notes?.length) html += `<div class="muted" style="margin-top:8px">${res.notes.map(esc).join("<br>")}</div>`;
+    if (res.applied) html += `<div class="okmsg" style="margin-top:9px">applied ✓ verified=${res.applied.verified} bounced=${res.applied.bounced.length}</div>`;
+    $("diff").innerHTML = html;
+    $("applyBtn").disabled = !res.updates || Object.keys(res.updates).length===0;
+    $("applyBtn").dataset.updates = JSON.stringify(res.updates||"{}");
+    $("nlMsg").textContent = apply ? "done" : `${res.count} change(s) proposed`;
+    if (apply) { dirty={}; stage(); loadAll(); }
+  } catch(e){ $("nlMsg").textContent="error"; $("diff").innerHTML=`<div class="err" style="margin-top:10px">${esc(e.message)}</div>`; }
+}
+
+async function applyStaged(){
+  const updates = JSON.parse($("applyBtn").dataset.updates || "{}");
+  const merged = Object.assign({}, updates, dirty);
+  try {
+    const res = await api("/settings/apply", {method:"POST", body: JSON.stringify({updates:merged, apply:true})});
+    $("stageMsg").textContent = res.verified
+      ? `saved ✓ ${res.changed.length} change(s)` + (res.added?.length ? ` (${res.added.length} new)` : "")
+      : `saved with ${res.bounced.length} bounce(s)`;
+    dirty = {}; $("saveFields").disabled = true; loadAll();
+  } catch(e){ $("stageMsg").textContent = "error"; $("diff").innerHTML += `<div class="err">${esc(e.message)}</div>`; }
+}
+
+/* ---------------------------------------------------------------- project */
+async function loadProject(){
+  const name = $("projSel").value;
+  if (!name) return;
+  CUR_PROJECT = name;
+  try {
+    const p = await api("/project?name=" + encodeURIComponent(name));
+    const roles = ["proxies for se","proxies for parse","proxies for sending"];
+    const pretty = {
+      "proxies for se": `Search engines ${dot("scraping")}`,
+      "proxies for parse": `Visiting / parsing sites ${dot("parsing")}`,
+      "proxies for sending": `Submitting forms ${dot("sending")}`};
+    $("projStat").textContent = `${p.search_engines_enabled}/${p.search_engines_total} search engines on · ${p.keywords.length} keyword(s)`;
+    $("projOut").innerHTML = `
+      <div class="notice">
+        <b>Proxies live here, not in config.ini.</b>
+        Turning these on lets you raise <span class="gterm" data-gloss="thread">threads</span> without Google banning your home IP.
+        Right now all three are <b>off</b>, so the proxy pool you already have is unused.
+      </div>
+      <div style="margin-top:14px">
+        ${roles.map(r => `
+          <div class="fld" style="border:1px solid var(--hair);border-radius:13px;margin-bottom:7px">
+            <label>${pretty[r]}<div class="sub">use proxies for ${r.replace("proxies for ","")}</div></label>
+            <div class="ctl"><div class="sw ${p.proxies[r]?"on":""}" onclick="toggleProj('${r}',this)"></div></div>
+          </div>`).join("")}
+      </div>
+      <div style="margin-top:12px">
+        <div class="muted" style="margin-bottom:6px">Proxy type per role ${dot("proven vs inferred")}</div>
+        ${roles.map(r => `
+          <div class="fld" style="border:1px solid var(--hair);border-radius:13px;margin-bottom:7px">
+            <label>${pretty[r]}</label>
+            <div class="ctl"><select onchange="setProj('${r.replace("proxies for","")} proxy type', this.value)">
+              ${Object.entries(p.proxy_type_options).map(([id,label]) =>
+                `<option value="${id}" ${String(p.proxy_types[r.replace("proxies for","")+" proxy type"])===id?"selected":""}>${label}</option>`).join("")}
+            </select></div>
+          </div>`).join("")}
+        <div class="muted">type ids: only <b>3</b> is proven from your file; others are inferred — verify once by hand.</div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="muted" style="margin-bottom:6px">Keywords</div>
+        <div id="kwBox">${p.keywords.map(k=>`<span class="kw">${esc(k.name)}<button onclick="rmKw('${esc(k.name)}')">×</button></span>`).join("") || `<span class="muted">none</span>`}</div>
+        <div class="row" style="margin-top:8px">
+          <input id="newKw" placeholder="add a keyword (e.g. automation agencies)" style="flex:1"
+                 onkeydown="if(event.key==='Enter')addKw()" />
+          <button class="ghost sm" onclick="addKw()">Add</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button onclick="saveProject()" id="projSave" disabled>Save project changes</button>
+        <span class="muted" id="projMsg"></span>
+      </div>
+      <div id="projDiff"></div>`;
+  } catch(e){ $("projOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+let projDirty = {}, kwDirty = null;
+
+function markProj(){ $("projSave").disabled = false; $("projMsg").textContent = "unsaved"; }
+function toggleProj(role, el){
+  const on = !el.classList.contains("on"); el.classList.toggle("on", on);
+  projDirty["misc::"+role] = on; markProj();
+}
+function setProj(key, val){ projDirty["misc::"+key] = Number(val); markProj(); }
+
+function kwList(){
+  if (kwDirty === null) {
+    const names = [...document.querySelectorAll("#kwBox .kw")].map(e=>e.textContent.replace("×","").trim());
+    kwDirty = names;
+  }
+  return kwDirty;
+}
+function addKw(){
+  const v = $("newKw").value.trim(); if(!v) return;
+  kwDirty = kwList().concat([v]); $("newKw").value = "";
+  renderKw(); markProj();
+}
+function rmKw(name){
+  kwDirty = kwList().filter(k=>k!==name);
+  renderKw(); markProj();
+}
+function renderKw(){
+  $("kwBox").innerHTML = kwDirty.map(k=>`<span class="kw">${esc(k)}<button onclick="rmKw('${esc(k)}')">×</button></span>`).join("") || `<span class="muted">none</span>`;
+}
+
+async function saveProject(){
+  const body = {name: CUR_PROJECT, updates: projDirty, apply: true};
+  if (kwDirty !== null) body.keywords = kwDirty;
+  try {
+    const res = await api("/project/apply", {method:"POST", body: JSON.stringify(body)});
+    $("projMsg").innerHTML = `<span class="okmsg">saved ✓ ${res.changed.length} change(s), verified=${res.verified}</span>`;
+    projDirty = {}; kwDirty = null;
+    setTimeout(() => { $("projSave").disabled = true; loadProject(); }, 900);
+  } catch(e){ $("projMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+}
+
+/* ---------------------------------------------------------------- per-person import */
+let importPlan = null;
+async function previewImport(){
+  const text = $("ppl").value.trim();
+  if (!text) { $("pplOut").innerHTML = `<div class="muted" style="margin-top:10px">paste some rows first</div>`; return; }
+  try {
+    const p = await api("/import/plan", {method:"POST", body: JSON.stringify({text})});
+    importPlan = p;
+    $("pplOut").innerHTML = `
+      <div class="okmsg" style="margin-top:12px">${p.row_count} row(s) · URL column <b>${esc(p.url_header)}</b>
+        ${p.message_header ? `· message column <b>${esc(p.message_header)}</b> → macro <code>${esc(p.message_macro)}</code>` : ""}</div>
+      ${p.notes.map(n=>`<div class="muted">${esc(n)}</div>`).join("")}
+      <div class="diff" style="margin-top:10px">
+        <div><span class="k">${esc(p.headers.join(" | "))}</span></div>
+        ${p.preview.map(r=>`<div>${p.headers.map(h=>esc((r[h]||"").slice(0,42))).join(" | ")}</div>`).join("")}
+      </div>
+      ${p.message_header ? "" : `<div class="notice">No message column — every site would get the same text.</div>`}`;
+    $("pplApply").disabled = !p.message_header;
+  } catch(e){ $("pplOut").innerHTML = `<div class="err" style="margin-top:10px">${esc(e.message)}</div>`; }
+}
+
+async function applyImport(wire){
+  const text = $("ppl").value.trim();
+  try {
+    const res = await api("/import/apply", {method:"POST", body: JSON.stringify({
+      text, save_name: $("pplName").value.trim() || "per person import",
+      project: $("pplProject").value, apply_project: wire, delete_after: true
+    })});
+    $("pplOut").innerHTML = `
+      <div class="okmsg" style="margin-top:12px">
+        saved ${res.row_count} row(s) → <code>${esc(res.csv_path)}</code>
+      </div>
+      ${res.project_apply ? `<div class="muted">project <b>${esc(res.project)}</b> wired to this file
+        (import on, delete-after on)</div>` : ""}
+      ${res.message_instructions ? `
+        <div class="notice info">
+          <b>Last step:</b> put this in the project's message body so each row's text is used:<br>
+          <code>${esc(res.message_instructions.body)}</code>
+        </div>` : ""}`;
+  } catch(e){ $("pplOut").innerHTML = `<div class="err" style="margin-top:10px">${esc(e.message)}</div>`; }
+}
+
+/* ---------------------------------------------------------------- sizing */
+let SZ_TIERS = [];
+async function loadSizing(){
+  const vol = Number($("szVol").value || 1000);
+  loadIspPrice(Number($("ispCount").value || 40));
+  loadTinyfish();
+  loadFarm(3);
+  loadFarmSafe();
+  loadCapacity();
+  loadProxyBuy();
+  loadRotating();
+  loadIpnux();
+  loadCheap();
+  loadSplit();
+  loadStages();
+  loadSpend();
+  loadMinBudget();
+  loadImported();
+  loadGrade();
+  loadFallback();
+  loadProviders();
+  loadSteps(vol);
+  loadLayer2(vol);
+  try {
+    const p = await api("/sizing/proxies?tier=" + encodeURIComponent($("szTier").value || "free"));
+    if (!SZ_TIERS.length) {
+      SZ_TIERS = p.tiers;
+      $("szTier").innerHTML = p.tiers.map(t =>
+        `<option value="${t.key}">${esc(t.label)}${t.recommend ? " ★" : ""}</option>`).join("");
+      const rec = p.tiers.find(t => t.recommend);
+      if (rec) $("szTier").value = rec.key;
+    }
+    $("szSrc").textContent = `${p.sources.enabled}/${p.sources.total} built-in proxy sources on`;
+    $("szSrc").innerHTML = `${p.sources.enabled}/${p.sources.total} built-in proxy sources on` +
+      ` ${dot("pool entry")}`;
+    const t = p.tiers.find(x => x.key === p.tier);
+    $("szProxies").innerHTML = `
+      <div class="notice info">
+        <b>${esc(t.label)}</b> — ${esc(t.quality)}<br><span class="muted">${esc(t.cost_note)}</span>
+      </div>
+      <table style="margin-top:12px">
+        <tr><th>Sends/day</th><th><span class="gterm" data-gloss="thread">Threads</span></th>
+            <th><span class="gterm" data-gloss="pool entry">Pool entries needed</span></th>
+            <th><span class="gterm" data-gloss="live at once">Live at once</span></th>
+            <th>Distinct IPs/day</th></tr>
+        ${p.rows.map(r => `<tr><td>${r.daily_sends.toLocaleString()}</td><td>${r.threads}</td>
+          <td><b>${r.pool_entries_needed.toLocaleString()}</b></td><td>${r.live_at_once_needed}</td>
+          <td>${r.distinct_ips_per_day.toLocaleString()}</td></tr>`).join("")}
+      </table>
+      <div class="muted" style="margin-top:8px">
+        A <span class="gterm" data-gloss="usable thread">usable thread</span> is a thread that always has a live proxy behind it —
+        that is why the pool is sized at ${Math.round(p.assumptions.proxy_live_fraction*100)}% usable
+        (${p.assumptions.page_requests_per_site} requests/site). ${esc(p.assumptions.note)}
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="ghost sm" onclick="enableSources()" id="szEnableBtn">Enable free proxy sources</button>
+        <span class="muted" id="szEnableMsg"></span>
+      </div>`;
+    szSources(p.sources);
+  } catch(e){ $("szProxies").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+
+  try {
+    const c = await api("/sizing/captcha?daily_sends=" + vol);
+    const L = c.stack.layers;
+    const line = (k,label) => L[k] ? `<tr><td>${label}</td><td>${esc(L[k].name)}</td>
+        <td>${L[k].model}</td><td><b>$${L[k].est_monthly_usd}</b>/mo</td></tr>` : "";
+    $("szCaptcha").innerHTML = `
+      <div class="okmsg">~${c.solves_per_day} captcha solves/day · ~${c.solves_per_month}/mo</div>
+      <div style="margin-top:10px" class="muted">Recommended layered stack (coverage per dollar):</div>
+      <table style="margin-top:8px">
+        <tr><th>Layer</th><th>Service</th><th>Model</th><th>Est. cost</th></tr>
+        ${line("primary","Primary solver")}
+        ${line("backup","Backup (independent vendor)")}
+        ${line("text_ocr_free","Free text/image solver")}
+        ${line("text_ocr_cheap","Cheap text solver")}
+        ${line("ai_optional","AI solver (optional)")}
+      </table>
+      <div class="muted" style="margin-top:8px">${esc(c.stack.why)}</div>
+      <div class="notice">If nothing is gated by captcha, <b>cost is $0</b> — set the rate to 0 and skip this entirely.</div>
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">All ${c.services.length} shipped services with prices</summary>
+        <table style="margin-top:8px"><tr><th>Service</th><th>Rating</th><th>Model</th><th>$/mo at your volume</th><th>Broad</th></tr>
+        ${c.services.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.rating ?? "—"}</td><td>${esc(s.model)}</td>
+          <td>$${s.est_monthly_usd}</td><td>${s.broad_coverage?"✓":""}</td></tr>`).join("")}
+        </table>
+      </details>`;
+  } catch(e){ $("szCaptcha").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadSplit(){
+  try {
+    const sends = Math.max(100, Number($("stSends").value || 5000));
+    const pp = Math.min(40, Math.max(1, Number($("stDelta").value || 10)));
+    const d = await api(`/sizing/split-test?daily_sends=${sends}&detect_pp=${pp}`);
+    const ss = d.sample_size;
+    $("stOut").innerHTML = `
+      <div class="notice info"><b>${esc(d.headline)}</b></div>
+
+      <div class="notice warn" style="margin-top:12px"><b>Why captcha cannot be held constant</b>
+        <div class="muted" style="margin-top:4px">${esc(d.the_core_insight.why_captcha_cannot_be_constant)}</div>
+        <div style="margin-top:6px"><b>${esc(d.the_core_insight.so)}</b></div>
+        <div class="muted">${esc(d.the_core_insight.and)}</div>
+      </div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">The design</b></div>
+      <table style="margin-top:6px">
+        <tr><td>Type</td><td><b>${esc(d.design.name)}</b></td></tr>
+        <tr><td>Unit</td><td>${esc(d.design.unit_of_assignment)}</td></tr>
+        <tr><td>Balanced on</td><td>${esc(d.design.stratification_variable)}</td></tr>
+        <tr><td>Randomisation</td><td>${esc(d.design.randomisation)}</td></tr>
+        <tr><td>Optional pairing</td><td class="muted">${esc(d.design.paired_variant)}</td></tr>
+        <tr><td>Why not two plain lists</td><td class="muted">${esc(d.design.why_not_two_plain_lists)}</td></tr>
+      </table>
+
+      <div class="notice warn" style="margin-top:12px"><b>Primary metric:</b> ${esc(d.primary_metric.name)} — ${esc(d.primary_metric.definition)}<br><b>Not the metric:</b> ${esc(d.primary_metric.explicitly_not_the_metric)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Attribute failures — do not collapse them</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Code</th><th>Attributable to</th><th>Note</th></tr>
+        ${d.failure_taxonomy.map(t => `<tr><td><code>${esc(t.code)}</code></td><td>${esc(t.attributable_to)}</td><td class="muted">${esc(t.note)}</td></tr>`).join("")}
+      </table>
+      <div class="notice info">${esc(d.taxonomy_note)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Sample size (to detect a ${ss.detect_pp}pp gap, base ${ss.pooled_baseline_pct}%)</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Stratum</th><th>Share</th><th>n per arm</th></tr>
+        ${ss.per_stratum.map(s => `<tr><td><b>${esc(s["class"])}</b></td><td>${s.share_pct}%</td><td><b>${s.n_per_arm}</b></td></tr>`).join("")}
+        <tr><td colspan="2"><b>Minimum total (both arms)</b></td><td><b>${ss.minimum_total_attempts}</b></td></tr>
+        <tr><td colspan="2"><b>With A/A floor + canary + dropout</b></td><td><b>${ss.recommended_total_with_safety}</b></td></tr>
+        <tr><td colspan="2"><b>Days at this volume</b></td><td><b>${ss.days_at_daily_volume}</b></td></tr>
+      </table>
+      <div class="muted" style="margin-top:4px">${esc(ss.read)}</div>
+      <div class="notice warn">${esc(ss.warning)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Hold identical (or you are testing the wrong thing)</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">${d.must_be_identical.map(x => `<li class="muted">${esc(x)}</li>`).join("")}</ul>
+      <div class="notice info" style="margin-top:8px"><b>Deliberately varied:</b> ${esc(d.deliberately_varied[0])}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Confounds to kill</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Confound</th><th>Why it ruins the test</th><th>Fix</th></tr>
+        ${d.confounds_to_kill.map(c => `<tr><td><b>${esc(c.confound)}</b></td><td class="muted">${esc(c.why_it_ruins_it)}</td><td>${esc(c.fix)}</td></tr>`).join("")}
+      </table>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Controls</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        <li class="muted"><b style="color:#fff">Positive canary:</b> ${esc(d.controls.positive_canary.what)} — ${esc(d.controls.positive_canary.why)}</li>
+        <li class="muted"><b style="color:#fff">A/A noise floor:</b> ${esc(d.controls.negative_aa_noise_floor.what)} — ${esc(d.controls.negative_aa_noise_floor.why)}</li>
+        <li class="muted"><b style="color:#fff">Pre-register:</b> ${esc(d.controls.pre_register)}</li>
+      </ul>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Run it in GSA</b></div>
+      <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6">${d.gsa_implementation.map(x => `<li class="muted">${esc(x)}</li>`).join("")}</ol>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Decision rule</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        <li class="muted"><b style="color:#fff">Adopt cheap if:</b> ${esc(d.decision_rule.adopt_cheap_if)}</li>
+        <li class="muted"><b style="color:#fff">Keep dedicated if:</b> ${esc(d.decision_rule.keep_dedicated_if)}</li>
+        <li class="muted"><b style="color:#fff">Cannot call it if:</b> ${esc(d.decision_rule.cant_call_it_if)}</li>
+      </ul>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">What this still does NOT prove</summary>
+        <ul style="margin:8px 0 0;padding-left:20px">${d.what_this_does_not_prove.map(x => `<li class="muted">${esc(x)}</li>`).join("")}</ul>
+      </details>`;
+    linkify($("stOut"));
+    await loadProc(sends, pp);
+  } catch(e){ $("stOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadMinBudget(){
+  try {
+    const d = await api(`/sizing/minimum-test?daily_sends=5000`);
+    const pick = d.cheapest_defensible_pick;
+    $("mbOut").innerHTML = `
+      <div class="notice info"><b>${esc(d.headline)}</b></div>
+
+      <div class="notice warn" style="margin-top:10px"><b>Two knobs people conflate</b>
+        <table style="margin-top:6px">
+          <tr><td>Correctness knob</td><td class="muted">${esc(d.the_two_knobs_people_conflate.correctness_knob)}</td></tr>
+          <tr><td>Budget knob</td><td class="muted">${esc(d.the_two_knobs_people_conflate.budget_knob)}</td></tr>
+        </table>
+        <div style="margin-top:6px"><b>${esc(d.the_two_knobs_people_conflate.the_insight)}</b></div>
+        <div style="margin-top:4px">${esc(d.the_two_knobs_people_conflate.so)}</div>
+      </div>
+      <div class="notice" style="margin-top:8px">${esc(d.the_two_knobs_people_conflate.false_step)}</div>
+
+      <table style="margin-top:12px">
+        <tr><th>Tier</th><th>$/mo</th><th>Attempts</th><th>IPs/arm</th><th>Threads</th><th>~Runtime</th><th>What it proves / risk</th></tr>
+        ${d.tiers.map(t => `<tr>
+          <td><b>${esc(t.tier)}</b><br><span class="muted">${esc(t.arms)}</span></td>
+          <td><b>$${t.usd_month.toFixed(2)}</b><br><span class="muted">${esc(t.breakdown.clean_arm)}</span></td>
+          <td>${t.attempts_total_with_safety}</td><td>${t.ips_per_arm}</td><td>${t.threads}</td>
+          <td>~${t.approx_runtime_minutes} min</td>
+          <td class="muted">${esc(t.what_it_proves)}<br><b style="color:#fff">Risk:</b> ${esc(t.risk)}</td></tr>`).join("")}
+      </table>
+
+      <div class="notice warn" style="margin-top:10px"><b>Hard floor:</b> ${esc(d.hard_floor_note)}</div>
+
+      <div class="notice ok" style="margin-top:10px"><b>Pick: ${esc(pick.take)} ($ ${d.recommended.usd_month.toFixed(2)})</b>
+        <div style="margin-top:4px">${esc(pick.why)}</div>
+        <div class="muted" style="margin-top:4px">${esc(pick.true_floor)}</div>
+      </div>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">What is NOT in this budget</summary>
+        <ul style="margin:8px 0 0;padding-left:18px">${d.what_is_NOT_in_this_budget.map(x => `<li class="muted">${esc(x)}</li>`).join("")}</ul>
+      </details>
+      <details style="margin-top:8px"><summary class="muted" style="cursor:pointer">How to cut it further</summary>
+        <ul style="margin:8px 0 0;padding-left:18px">${d.how_to_cut_it_further.map(x => `<li class="muted">${esc(x)}</li>`).join("")}</ul>
+      </details>`;
+    linkify($("mbOut"));
+  } catch(e){ $("mbOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadSpend(){
+  try {
+    const sends = Math.max(100, Number($("spSends").value || 5000));
+    const d = await api(`/sizing/spend?daily_sends=${sends}`);
+    const t = d.totals;
+    const row = l => `<tr>
+      <td><b>${esc(l.bucket)}</b><br><span class="muted">${esc(l.item)}</span></td>
+      <td><b>${l.usd_month === 0 ? "$0" : "$" + l.usd_month.toFixed(2)}</b><br><span class="muted">${esc(l.scale)}</span></td>
+      <td>${esc(l.buys)}</td>
+      <td class="muted">${esc(l.why_here)}</td>
+      <td class="muted"><b style="color:#fff">If skipped:</b> ${esc(l.without_it)}<br><b style="color:#fff">Cheaper:</b> ${esc(l.cheap_alternative)}</td>
+      <td class="muted">${esc(l.confidence)}</td></tr>`;
+    $("spOut").innerHTML = `
+      <div class="notice info"><b>${esc(d.the_one_sentence)}</b></div>
+      <div class="notice warn" style="margin-top:10px">${esc(d.headline)}</div>
+
+      <table style="margin-top:12px">
+        <tr><th>Bucket</th><th>$/mo</th><th>Buys</th><th>Why here</th><th>Trade-off</th><th>Confidence</th></tr>
+        ${d.lines.map(row).join("")}
+        <tr><td><b>Recurring</b></td><td><b>$${t.recurring_monthly.toFixed(2)}</b></td><td colspan="4"></td></tr>
+        <tr><td><b>One-off test</b></td><td><b>$${t.one_off_test.toFixed(2)}</b></td><td colspan="4"></td></tr>
+        <tr><td><b>First month all-in</b></td><td><b>$${t.all_in_first_month.toFixed(2)}</b></td>
+            <td colspan="4" class="muted">$${t.per_day}/day · $${t.per_send} per send</td></tr>
+      </table>
+
+      <div class="notice warn" style="margin-top:12px"><b>How to read it:</b> ${esc(d.how_to_read_this.cost_driver)}<br>
+        ${esc(d.how_to_read_this.where_the_test_pays)}</div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Marginal value per dollar</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Bucket</th><th>Marginal value</th></tr>
+        ${d.what_you_get_for_each_dollar.map(x => `<tr><td>${esc(x.bucket)}</td><td class="muted">${esc(x.marginal_value)}</td></tr>`).join("")}
+      </table>
+
+      <div class="row" style="margin-top:12px;gap:10px">
+        <div class="notice" style="flex:1"><b>Cheapest sane (~$${d.cheapest_sane_version.rough_monthly}/mo)</b>
+          <div class="muted">${esc(d.cheapest_sane_version.how)}</div><div class="muted">${esc(d.cheapest_sane_version.trade)}</div></div>
+        <div class="notice" style="flex:1"><b>Premium (~$${d.premium_version.rough_monthly}/mo)</b>
+          <div class="muted">${esc(d.premium_version.how)}</div><div class="muted">${esc(d.premium_version.trade)}</div></div>
+      </div>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Assumption ledger — what is proven vs guessed</summary>
+        <div style="margin-top:8px" class="muted">Proven volumes: ${d.assumption_ledger.proven_volumes.map(esc).join(", ")}<br>
+        Labelled rates: ${d.assumption_ledger.labelled_rates.map(esc).join(", ")}<br>
+        Published prices: ${d.assumption_ledger.published_prices.map(esc).join(", ")}<br>
+        <b>${esc(d.assumption_ledger.fix_rule)}</b></div>
+      </details>`;
+    linkify($("spOut"));
+  } catch(e){ $("spOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadStages(){
+  try {
+    const d = await api(`/sizing/stages?daily_sends=5000`);
+    const proof = d.the_setting_that_proves_it;
+    $("sgOut").innerHTML = `
+      <div class="notice warn"><b>${esc(d.straight_answer)}</b></div>
+
+      <div class="notice info" style="margin-top:12px"><b>Three hops happen per submission. The service covers ONE.</b>
+        <ul style="margin:6px 0 0;padding-left:18px">
+          <li class="muted"><b style="color:#fff">Hop 1 (yours):</b> ${esc(d.the_two_hops_they_cannot_do.hop_1_read)}</li>
+          <li class="muted"><b style="color:#fff">Hop 2 (theirs):</b> ${esc(d.the_two_hops_they_cannot_do.hop_2_solve)}</li>
+          <li class="muted"><b style="color:#fff">Hop 3 (yours):</b> ${esc(d.the_two_hops_they_cannot_do.hop_3_submit)}</li>
+        </ul>
+        <div style="margin-top:6px">${esc(d.the_two_hops_they_cannot_do.why_it_matters)}</div>
+      </div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Stage by stage</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Stage</th><th>Needs our proxy</th><th>Grade needed</th><th>Do captchas help</th></tr>
+        ${d.stage_by_stage.map(s => `<tr>
+          <td><b>${esc(s.stage)}</b><br><span class="muted">${esc(s.why)}</span><br><span class="muted">${esc(s.keep_separate)}</span></td>
+          <td>${esc(s.needs_our_proxy)}</td>
+          <td><b>${esc(s.grade_needed)}</b></td>
+          <td class="muted">${esc(s.captcha_services_help)}</td></tr>`).join("")}
+      </table>
+
+      <div class="notice warn" style="margin-top:12px"><b>${esc(d.the_real_risk_they_do_not_remove.insight)}</b>
+        <div class="muted" style="margin-top:4px">${esc(d.the_real_risk_they_do_not_remove.detail)}</div>
+        <div style="margin-top:4px"><b>${esc(d.the_real_risk_they_do_not_remove.consequence)}</b></div>
+      </div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">The setting that makes this concrete: <code>${esc(proof.key)}</code> (live value ${proof.live_value})</b></div>
+      <div class="muted">${esc(proof.what_it_decides)}</div>
+      <div class="notice info">${esc(proof.the_trap)}</div>
+
+      <div class="notice" style="margin-top:12px"><b>The hybrid that maximises value</b>
+        <ul style="margin:6px 0 0;padding-left:18px">
+          <li class="muted">Parse pool: ${esc(d.the_hybrid_that_maximises_value.parse_pool)}</li>
+          <li class="muted">Send pool: ${esc(d.the_hybrid_that_maximises_value.send_pool)}</li>
+          <li class="muted">Captcha: ${esc(d.the_hybrid_that_maximises_value.captcha)}</li>
+        </ul>
+        <div style="margin-top:4px">${esc(d.the_hybrid_that_maximises_value.why)}</div>
+        <div><b>${esc(d.the_hybrid_that_maximises_value.saving)}</b></div>
+      </div>
+
+      <div class="notice warn" style="margin-top:10px"><b>Do parse proxies need to be good?</b> ${esc(d.does_the_parse_pool_need_to_be_good.answer)}
+        <div class="muted" style="margin-top:4px">${esc(d.does_the_parse_pool_need_to_be_good.reason)}</div>
+        <div style="margin-top:4px">${esc(d.does_the_parse_pool_need_to_be_good.one_caveat)}</div>
+      </div>
+
+      <div class="muted" style="margin-top:10px"><b style="color:#fff">Still needed at full scale:</b> ${esc(d.what_is_still_needed_1_to_1.point)} ${esc(d.what_is_still_needed_1_to_1.why)}</div>`;
+    linkify($("sgOut"));
+  } catch(e){ $("sgOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadProc(sends, pp){
+  try {
+    const d = await api(`/sizing/procurement?daily_sends=${sends}&detect_pp=${pp}`);
+    $("prOut").innerHTML = `
+      <div style="border-top:1px solid var(--line);margin:16px 0"></div>
+      <h3 style="margin:0 0 8px">What to buy — and how to send it to me</h3>
+      <div class="notice warn"><b>${esc(d.headline)}</b></div>
+      <div class="notice info" style="margin-top:8px">${esc(d.key_point)}</div>
+
+      <table style="margin-top:10px">
+        <tr><th>Arm</th><th>What</th><th>Vendor</th><th>IPs</th><th>$/mo</th></tr>
+        ${d.arms.map(a => `<tr>
+          <td><b>${esc(a.arm)}</b></td>
+          <td>${esc(a.label)}</td>
+          <td>${esc(a.vendor)}<br><span class="muted">${esc(a.why_this_vendor)}</span></td>
+          <td>${a.ips}</td><td>${a.monthly === 0 ? "$0" : "$" + a.monthly.toFixed(2)}</td></tr>`).join("")}
+        <tr><td colspan="4"><b>Estimated test cost</b></td><td><b>$${d.estimated_test_cost_per_month.toFixed(2)}</b></td></tr>
+      </table>
+
+      <div class="notice warn" style="margin-top:10px"><b>Why so small?</b> ${esc(d.scale_check.why_small)}<br>
+        Attempts needed: <b>${d.scale_check.test_attempts_needed}</b> · threads: <b>${d.scale_check.threads_for_test}</b> · IPs per arm: <b>${d.scale_check.ips_per_arm}</b></div>
+
+      <div class="muted" style="margin-top:10px"><b style="color:#fff">How to get each one</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.arms.map(a => `<li class="muted"><b>${esc(a.arm)}:</b> ${esc(a.how_to_get)} <span class="muted">${esc(a.notes)}</span></li>`).join("")}
+      </ul>
+
+      <div class="notice info" style="margin-top:10px"><b>Where to send them:</b> ${esc(d.handover.where)}
+        <div class="muted" style="margin-top:4px">${esc(d.handover.format)}</div>
+        <code style="display:inline-block;margin-top:4px">${esc(d.handover.example_line)}</code>
+        <div style="margin-top:4px">${esc(d.handover.then)}</div>
+      </div>
+
+      <div class="muted" style="margin-top:10px"><b style="color:#fff">Then I do this automatically</b></div>
+      <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6">${d.what_i_do_when_you_hand_them_over.map(x => `<li class="muted">${esc(x)}</li>`).join("")}</ol>
+
+      <div class="notice warn" style="margin-top:10px"><b>Watch these when buying</b>
+        <ul style="margin:6px 0 0;padding-left:18px">${d.purchase_caveats.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+      </div>`;
+    linkify($("prOut"));
+  } catch(e){ $("prOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadCheap(){
+  try {
+    const sends = Math.max(100, Number($("cheapSends").value || 5000));
+    const d = await api(`/sizing/cheap-proxies?daily_sends=${sends}`);
+    const b = d.breakeven;
+    $("cheapOut").innerHTML = `
+      <div class="notice warn"><b>${esc(d.straight_answer)}</b></div>
+
+      <div class="notice" style="margin-top:12px"><b>${esc(d.the_dominant_asymmetry.insight)}</b>
+        <ul style="margin:6px 0 0;padding-left:18px">
+          <li class="muted"><b style="color:#fff">Loud failure:</b> ${esc(d.the_dominant_asymmetry.loud)}</li>
+          <li class="muted"><b style="color:#fff">Silent failure:</b> ${esc(d.the_dominant_asymmetry.silent)}</li>
+        </ul>
+        <div style="margin-top:6px"><b>${esc(d.the_dominant_asymmetry.consequence)}</b></div>
+      </div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Where the loss actually lands</b> — <i>${esc(d.loss_model.assumption_warning)}</i></div>
+      <table style="margin-top:6px">
+        <tr><th>Site class</th><th>Share</th><th>Cheap loss</th><th>Why</th></tr>
+        ${d.loss_model.by_site_class.map(c => `<tr>
+          <td><b>${esc(c["class"])}</b><br><span class="muted">${esc(c.what)}</span></td>
+          <td>${c.share_pct}%</td>
+          <td><b>${c.cheap_loss_pct === 0 ? "0%" : c.cheap_loss_pct + "%"}</b></td>
+          <td class="muted">${esc(c.why)}</td></tr>`).join("")}
+      </table>
+      <div class="notice info">Blended: <b>${d.loss_model.blended_loss_pct}%</b> from the datacenter penalty, plus <b>${d.loss_model.shared_extra_pct}%</b> if the pool is ALSO shared. Both fixes stack.</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">The trap: two axes, not one</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        <li class="muted">${esc(d.two_axes_do_not_collapse_them.axis_1)}</li>
+        <li class="muted">${esc(d.two_axes_do_not_collapse_them.axis_2)}</li>
+      </ul>
+      <div class="notice warn">${esc(d.two_axes_do_not_collapse_them.the_trap)}</div>
+      <div class="muted">${esc(d.two_axes_do_not_collapse_them.note)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Options, with the loss attached</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Option</th><th>$/mo</th><th>Loss vs dedicated ISP</th><th>Useless?</th></tr>
+        ${d.options_ranked.map(o => `<tr>
+          <td><b>${esc(o.option)}</b></td><td>${o.monthly === 0 ? "$0" : "$" + o.monthly.toFixed(2)}</td>
+          <td><b>${o.loss_pct}%</b></td><td class="muted">${esc(o.useless)}</td></tr>`).join("")}
+      </table>
+
+      <div class="notice info" style="margin-top:12px"><b>Breakeven:</b> ${esc(b.read)}<br><b>${esc(b.conclusion)}</b></div>
+
+      <div class="notice warn" style="margin-top:12px"><b>Fix this before buying anything.</b> ${esc(d.cost_of_getting_it_wrong.not_recoverable)}<br>${esc(d.cost_of_getting_it_wrong.fix_first)}</div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">The smart compromise — split by stage</b></div>
+      <table style="margin-top:6px">
+        <tr><td>Send pool</td><td><b>${esc(d.the_smart_compromise.send_pool)}</b></td></tr>
+        <tr><td>Parse pool</td><td>${esc(d.the_smart_compromise.parse_pool)}</td></tr>
+      </table>
+      <div class="muted">${esc(d.the_smart_compromise.why)}</div>
+
+      <div class="notice" style="margin-top:10px"><b>Cheapest non-stupid setup:</b>
+        <ul style="margin:6px 0 0;padding-left:18px">${d.cheapest_non_stupid_setup.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+      </div>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">How to replace my guesses with your own number</summary>
+        <div style="margin-top:8px">${esc(d.what_would_actually_settle_it.test)}<br><span class="muted">${esc(d.what_would_actually_settle_it.cost)}</span></div>
+      </details>`;
+    linkify($("cheapOut"));
+  } catch(e){ $("cheapOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadIpnux(){
+  try {
+    const n = Math.max(1, Number($("ipxN").value || 33));
+    const d = await api(`/sizing/ipnux?ips=${n}`);
+    const h = d.headline_problem, c = d.cost_impact;
+    $("ipxOut").innerHTML = `
+      <div class="notice warn"><b>Their page says $${h.marketing_says_usd_per_ip.toFixed(2)}/IP. The checkout quoted $${h.checkout_quoted_usd_per_ip.toFixed(2)}/IP — ${h.multiple}x.</b>
+        <br><span class="muted">${esc(h.read_it_as)}</span></div>
+
+      <div class="muted" style="margin-top:10px">Why: ${esc(d.which_tier_for_sending.why)}</div>
+
+      <table style="margin-top:12px">
+        <tr><th>Tier on the page</th><th>From $/IP</th><th>What it claims</th><th>For sending</th></tr>
+        ${d.the_quality_selector.map(t => `<tr${t.name==="Premium"?' style="background:rgba(255,180,60,.06)"':''}>
+          <td><b>${esc(t.name)}</b>${t.name==="Premium"?" ← pre-selected":""}</td>
+          <td>$${t.from_usd_per_ip.toFixed(2)}</td><td class="muted">${esc(t.desc)}</td>
+          <td class="muted">${esc(t.verdict_for_sending)}</td></tr>`).join("")}
+      </table>
+
+      <div class="okmsg" style="margin-top:12px"><b>Pick: ${esc(d.which_tier_for_sending.pick)}</b></div>
+      <div class="muted">Unless: ${esc(d.which_tier_for_sending.unless)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">What this costs you at ${d.ips} IPs</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Option</th><th>Monthly</th></tr>
+        ${c.comparison.map(r => `<tr><td>${esc(r.option)}</td><td><b>$${r.monthly_usd.toFixed(2)}</b></td></tr>`).join("")}
+      </table>
+      <div class="notice info">Downgrading the tier saves <b>$${c.saving_from_downgrading_tier.toFixed(2)}/month</b>. Comparing vendors is worth another <b>$${c.saving_from_switching_vendor.toFixed(2)}/month</b>.</div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Checkout hygiene</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.checkout_hygiene.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <div class="notice" style="margin-top:10px"><b>${esc(d.bottom_line)}</b></div>
+      <div class="muted" style="margin-top:6px">${esc(d.honesty)}</div>`;
+    linkify($("ipxOut"));
+  } catch(e){ $("ipxOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadRotating(){
+  try {
+    const sends = Math.max(100, Number($("rotSends").value || 5000));
+    const kb = Math.max(10, Number($("rotKb").value || 80));
+    const d = await api(`/sizing/rotating-residential?daily_sends=${sends}&kb_per_page=${kb}`);
+    const c = d.cost_math, cmp = d.the_comparison;
+    $("rotOut").innerHTML = `
+      <table>
+        <tr><th>Stage</th><th>Verdict</th></tr>
+        <tr><td>Parsing</td><td class="okmsg">${esc(d.would_they_work.for_parsing)}</td></tr>
+        <tr><td>Sending</td><td class="warnmsg">${esc(d.would_they_work.for_sending)}</td></tr>
+      </table>
+
+      <div class="notice warn" style="margin-top:12px"><b>Why sending breaks:</b> ${esc(d.the_sticky_problem.why)}</div>
+      <div class="notice">${esc(d.the_sticky_problem.and_gsa_cannot_fix_it)}</div>
+      <div class="muted" style="margin-top:6px">Their own wording: ${esc(d.the_sticky_problem.their_wording)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">The workaround</b></div>
+      <div class="notice info">${esc(d.the_workaround.idea)}<br><span class="muted">${esc(d.the_workaround.why_it_works)}</span>
+        <br><span class="muted">Caveat: ${esc(d.the_workaround.caveat)}</span></div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Cost at ${d.daily_sends.toLocaleString()} forms/day — this is where it loses</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Measure</th><th>Value</th></tr>
+        <tr><td>Traffic (@${c.assumed_kb_per_page} KB/page, ${c.assumed_pages_per_site} pages/site)</td><td><b>${c.gb_per_month_total} GB/month</b></td></tr>
+        <tr><td>Rotating residential @ realistic rate</td><td><b>$${c.monthly_cost_low}–$${c.monthly_cost_high}/mo</b></td></tr>
+        <tr><td>Dedicated static ISP instead</td><td><b class="okmsg">$${cmp.dedicated_monthly}/mo for ${cmp.dedicated_ips} IPs</b></td></tr>
+      </table>
+      <div class="notice warn">${esc(c.why_not_headline)}</div>
+      <div class="notice"><b>Verdict:</b> ${esc(cmp.verdict)}</div>
+      <div class="muted" style="margin-top:6px">${esc(cmp.why)}</div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">When they ARE the right buy</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.when_they_are_right.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <table style="margin-top:12px">
+        <tr><th>Use for</th><th>Buy</th></tr>
+        <tr><td>Sending</td><td><b>${esc(d.recommendation.sending)}</b></td></tr>
+        <tr><td>Parsing</td><td>${esc(d.recommendation.parsing)}</td></tr>
+      </table>
+      <div class="muted" style="margin-top:8px"><b style="color:#fff">Assumptions:</b> ${d.assumptions.map(esc).join(" · ")}</div>`;
+    linkify($("rotOut"));
+  } catch(e){ $("rotOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadProxyBuy(){
+  try {
+    const sends = Math.max(100, Number($("pxSends").value || 5000));
+    const d = await api(`/sizing/proxies-for?daily_sends=${sends}`);
+    $("pxOut").innerHTML = `
+      <div class="notice warn"><b>${esc(d.recommended_type.grade)}</b> — not ${esc(d.recommended_type.not)}.</div>
+      <div class="muted" style="margin-top:6px">${esc(d.recommended_type.why)}</div>
+
+      <div class="stat2" style="margin-top:12px">
+        <div class="statbox"><div class="muted">Threads at ${d.daily_sends.toLocaleString()}/day</div><div class="bignum">${d.threads}</div></div>
+        <div class="statbox"><div class="muted">IPs to actually buy</div><div class="bignum">${d.ips_to_actually_buy}</div><div class="muted">1:1 with threads + 10% spare</div></div>
+      </div>
+      <div class="notice info">${esc(d.spare_reasoning)}</div>
+
+      <table style="margin-top:12px">
+        <tr><th>Vendor</th><th>$/IP</th><th>~Monthly at ${d.ips_to_actually_buy}</th><th>Why</th></tr>
+        ${d.vendors_ranked.map(v => `<tr><td><b>#${v.rank} ${esc(v.name)}</b></td><td>$${v.usd_per_ip}</td>
+          <td><b>~$${v.monthly_total}</b></td><td class="muted">${esc(v.why)}<br><span class="muted">Catch: ${esc(v.catch)}</span></td></tr>`).join("")}
+      </table>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">What NOT to buy, and why</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Option</th><th>Verdict</th><th>Why</th></tr>
+        ${d.what_not_to_buy.map(w => `<tr><td>${esc(w.option)}</td><td><b>${esc(w.verdict)}</b></td><td class="muted">${esc(w.why)}</td></tr>`).join("")}
+      </table>
+
+      <div class="notice" style="margin-top:12px"><b>Reality check:</b> ${esc(d.the_reality_check)}</div>
+      <div class="notice info"><b>Tiered option:</b> ${esc(d.a_tiered_option.split)}<br>${esc(d.a_tiered_option.why)}</div>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Next steps</summary>
+        <ol style="margin:8px 0 0;padding-left:20px;line-height:1.6">
+          ${d.next_steps.map(s => `<li class="muted">${esc(s)}</li>`).join("")}
+        </ol>
+      </details>
+      <div class="muted" style="margin-top:8px"><b style="color:#fff">Assumptions:</b> ${d.assumptions.map(esc).join(" · ")}</div>`;
+    linkify($("pxOut"));
+  } catch(e){ $("pxOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadCapacity(){
+  try {
+    const sends = Math.max(100, Number($("capSends").value || 10000));
+    const found = Math.max(5, Math.min(100, Number($("capFound").value || 60)));
+    const d = await api(`/sizing/capacity?daily_sends=${sends}&found_pct=${found}`);
+    const rec = d.the_actual_answer.if_recurring_daily;
+    const one = d.the_actual_answer.if_one_off_list;
+    $("capOut").innerHTML = `
+      <div class="notice warn"><b>${esc(d.framing)}</b></div>
+
+      <div class="stat2" style="margin-top:12px">
+        <div class="statbox">
+          <div class="muted">Recurring daily ${d.daily_sends.toLocaleString()} submits</div>
+          <div class="bignum">${rec.accounts} accounts</div>
+          <div class="muted">the daily allowance binds — ${esc(rec.time_to_clear_each_day)} of fetching</div>
+        </div>
+        <div class="statbox">
+          <div class="muted">One-off list of ${d.parse_urls_per_day.toLocaleString()} URLs</div>
+          <div class="bignum">${one.accounts} account${one.accounts !== 1 ? "s" : ""}</div>
+          <div class="muted">only speed binds here</div>
+        </div>
+      </div>
+      <div class="notice info">${esc(d.the_actual_answer.warning)}</div>
+
+      <div class="muted" style="margin-top:12px">${esc(d.the_actual_answer.if_recurring_daily.because)}</div>
+
+      <table style="margin-top:12px">
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td>Forms submitted / day</td><td><b>${d.daily_sends.toLocaleString()}</b></td></tr>
+        <tr><td>Sites parsed / day @ ${d.found_pct}% find-rate</td><td><b>${d.parse_urls_per_day.toLocaleString()}</b></td></tr>
+        <tr><td>Sending threads</td><td>${d.threads_recommended}</td></tr>
+        <tr><td>Clean sending IPs (dedicated)</td><td>${d.proxy_by_tier.dedicated_dc.pool_entries_needed}</td></tr>
+        <tr><td>Captcha solves / day</td><td>${d.captcha.solves_per_day.toLocaleString()} (~$${d.captcha.cost_per_day_usd}/day)</td></tr>
+      </table>
+
+      <div class="muted" style="margin-top:12px"><b style="color:#fff">If you spread it across days instead</b></div>
+      <table style="margin-top:6px">
+        <tr><th>Accounts</th><th>Days to clear</th><th>Back-to-back fetch time</th></tr>
+        ${Object.entries(d.spread_table).map(([k,v]) => `<tr><td>${esc(k.replace("_"," "))}</td><td>${v.days_to_clear}</td><td class="muted">${esc(v.wall_clock_if_back_to_back)}</td></tr>`).join("")}
+      </table>
+
+      <div class="notice"><b>The real limits:</b>
+        <ul style="margin:6px 0 0;padding-left:18px">${d.the_real_limits.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+      </div>`;
+    linkify($("capOut"));
+  } catch(e){ $("capOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadFarmSafe(){
+  try {
+    const d = await api("/sizing/farm-safety?accounts=3");
+    const sev = s => s.startsWith("medium") ? "warn" : "info";
+    $("farmSafe").innerHTML = `
+      <div class="okmsg"><b>${esc(d.the_one_line)}</b></div>
+
+      <div class="notice info" style="margin-top:12px">
+        <b>Is a different IP required? — ${esc(d.is_different_ip_required.answer)}</b><br>
+        <span class="muted">${esc(d.is_different_ip_required.detail)}</span>
+      </div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">What actually gets you flagged (and the fix)</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Trigger</th><th>Why it matters</th><th>Fix</th><th>Risk</th></tr>
+        ${d.what_actually_gets_you_blocked.map(t => `
+          <tr>
+            <td><b>${esc(t.trigger)}</b></td>
+            <td class="muted">${esc(t.why)}</td>
+            <td>${esc(t.fix)}</td>
+            <td>${esc(t.severity)}</td>
+          </tr>`).join("")}
+      </table>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">IP strategy, ranked — start at #1</b></div>
+      <ol style="margin:6px 0 0;padding-left:20px;line-height:1.7">
+        ${d.ip_strategy_ranked.map(r => `<li class="muted">
+          <b style="color:#fff">${esc(r.approach)}</b> — <i>${esc(r.verdict)}</i><br>${esc(r.why)}
+          ${r.how ? `<br><span class="muted">How: ${esc(r.how)}</span>` : ""}
+        </li>`).join("")}
+      </ol>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">What to actually separate</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Must differ</th><td>${d.what_to_separate.must_differ.map(esc).join("<br>")}</td></tr>
+        <tr><th>Nice to differ</th><td class="muted">${d.what_to_separate.nice_to_differ.map(esc).join("<br>")}</td></tr>
+        <tr><th>Can be identical</th><td class="muted">${d.what_to_separate.can_be_identical.map(esc).join("<br>")}</td></tr>
+      </table>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Email options, ranked by effort</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Option</th><th>Strength</th><th>Note</th></tr>
+        ${d.email_options.map(e => `<tr><td><b>${esc(e.option)}</b></td><td>${esc(e.tier)}</td><td class="muted">${esc(e.note)}</td></tr>`).join("")}
+      </table>
+      <div class="notice warn">${esc(d.email_options[0].note)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">The safety moves</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.the_safety_moves.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Signs you are drifting into abuse</summary>
+        <ul style="margin:8px 0 0;padding-left:20px;line-height:1.6">
+          ${d.signs_you_are_drifting_into_abuse.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+        </ul>
+      </details>
+      <div class="notice" style="margin-top:10px"><b>When to stop:</b> ${esc(d.stop_rule)}</div>`;
+  } catch(e){ $("farmSafe").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadFarm(n){
+  try {
+    const d = await api("/sizing/farm?accounts=" + Math.max(1, n));
+    const w = d.what_scales;
+    $("farmOut").innerHTML = `
+      <div class="okmsg"><b>${esc(d.legal_answer)}</b></div>
+
+      <table style="margin-top:12px">
+        <tr><th>Resource</th><th>1 account</th><th>${d.accounts} accounts</th></tr>
+        <tr><td>Fetch URLs / day</td><td>${w.daily_urls.per_account.toLocaleString()}</td>
+            <td><b>${w.daily_urls.total.toLocaleString()}</b></td></tr>
+        <tr><td>Fetch URLs / min</td><td>${w.per_minute.per_account}</td>
+            <td><b>${w.per_minute.total_per_min}</b></td></tr>
+        <tr><td>Implied speed</td><td>2.5/sec</td>
+            <td><b>${w.per_minute.implied_per_second}/sec</b></td></tr>
+        <tr><td>Cost</td><td>$0</td><td><b>$0</b></td></tr>
+      </table>
+
+      <div class="notice warn" style="margin-top:12px">
+        <b>Proxies and accounts solve different problems.</b> ${esc(d.proxies_relationship)}
+      </div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Why this beats every other lever here</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.advantage_over_proxies.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <div class="notice info" style="margin-top:12px"><b>The breakpoint:</b> ${esc(d.the_real_breakpoint.advice)}</div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Honest caveats — read before you sign up 10 emails</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.honest_caveats.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">How to actually do it</summary>
+        <ol style="margin:8px 0 0;padding-left:20px;line-height:1.6">
+          ${d.how_to_actually_do_it.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+        </ol>
+      </details>
+      <div class="muted" style="margin-top:10px"><b style="color:#fff">Rule of thumb:</b> ${esc(d.rule_of_thumb)}</div>`;
+    linkify($("farmOut"));
+  } catch(e){ $("farmOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadTinyfish(){
+  try {
+    const d = await api("/sizing/tinyfish");
+    $("tinyOut").innerHTML = `
+      <div class="notice warn"><b>${esc(d.short_answer)}</b></div>
+
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Why it cannot be a straight swap</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.why_not_a_swap.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">The math holds up though</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Measure</th><th>Value</th></tr>
+        <tr><td>Free URLs / day</td><td><b>${d.the_math.free_urls_per_day.toLocaleString()}</b> ($0)</td></tr>
+        <tr><td>Free URLs / min</td><td>${d.the_math.free_urls_per_min}</td></tr>
+        <tr><td>Implied speed ceiling</td><td><b>${d.concurrency_reality.implied_per_second}/sec</b></td></tr>
+        <tr><td>Their cited coverage</td><td>${d.the_math.their_cited_coverage_pct}% <span class="muted">(own eval)</span></td></tr>
+        <tr><td>TinyAgent per step</td><td>$${d.the_math.agent_cost_per_step_usd}</td></tr>
+      </table>
+      <div class="notice info">${esc(d.concurrency_reality.note)}</div>
+
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Where it wins</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.where_it_wins.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Where it loses</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.where_it_loses.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <div class="notice">${esc(d.the_vision_that_does_work)}</div>
+      <div class="muted" style="margin-top:8px">${esc(d.agent_vs_captcha_cost)}</div>
+      <div class="okmsg" style="margin-top:8px">${esc(d.recommendation)}</div>
+      <div class="muted" style="margin-top:8px">${esc(d.honesty)}</div>`;
+    linkify($("tinyOut"));
+  } catch(e){ $("tinyOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadImported(){
+  try {
+    const d = await api("/sizing/imported-list");
+    $("importedOut").innerHTML = `
+      <div class="notice info"><b>Scraping is off your plate.</b>
+        <div class="muted" style="margin-top:5px">${esc(d.why_big_win)}</div></div>
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Do this now — matched to your live project</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Setting</th><th>Currently</th><th>Why</th></tr>
+        ${d.hard_warnings.map(w => `<tr>
+          <td><code>${esc(w.flag)}</code></td>
+          <td><span class="tag warn">${esc(w.currently)}</span></td>
+          <td class="muted">${esc(w.why)}</td></tr>`).join("")}
+      </table>
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Proxies now only matter for two stages</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Stage</th><th>Risk</th><th>Grade to use</th></tr>
+        ${d.where_proxies_still_matter.map(w => `<tr>
+          <td><b>${esc(w.stage)}</b></td><td class="muted">${esc(w.risk)}</td>
+          <td>${esc(d.grade_advice[w.stage] || "")}</td></tr>`).join("")}
+        <tr><td><b>scraping</b> <span class="tag">skipped</span></td><td class="muted">—</td>
+            <td><b>turn proxies for se OFF</b></td></tr>
+      </table>
+      <div style="margin-top:14px" class="muted"><b style="color:#fff">Full checklist</b></div>
+      <ol style="margin:6px 0 0;padding-left:20px;line-height:1.7">
+        ${d.ready_made_checklist.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ol>
+      <div class="notice">${esc(d.per_person_risk)}</div>
+      <div class="notice info">${esc(d.scheduler_note)}</div>
+      <div class="muted" style="margin-top:8px">${esc(d.what_you_cannot_see_from_files)}</div>
+      <div class="muted" style="margin-top:8px">${esc(d.grounded)}</div>`;
+    linkify($("importedOut"));
+  } catch(e){ $("importedOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadFallback(){
+  try {
+    const d = await api("/sizing/fallback?pool_size=300");
+    const cps = d.cost_per_success;
+    $("fallbackOut").innerHTML = `
+      <div class="notice warn"><b>${esc(d.verdict)}</b></div>
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">Where it stops (native limits)</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.native_limits.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+      <div style="margin-top:12px" class="muted"><b style="color:#fff">What does work natively</b></div>
+      <ul style="margin:6px 0 0;padding-left:20px;line-height:1.6">
+        ${d.what_does_work_natively.map(x => `<li class="muted">${esc(x)}</li>`).join("")}
+      </ul>
+
+      <div style="margin-top:16px" class="muted"><b style="color:#fff">The ladder (approximation)</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Rung</th><th>Grade</th><th>IPs you point at the hard job</th><th>Keeps all IPs?</th></tr>
+        ${d.ladder.map(r => `<tr><td>${r.rung}</td><td><b>${esc(r.grade)}</b></td>
+          <td>${r.ips}</td><td class="muted">${r.keeps_all ? "yes — pool is shared" : ""}</td></tr>`).join("")}
+      </table>
+      <div class="muted" style="margin-top:8px">${esc(d.count_rule)}</div>
+
+      <div style="margin-top:16px" class="muted"><b style="color:#fff">Cost per success — the only efficiency number</b></div>
+      <table style="margin-top:8px">
+        <tr><th>Grade</th><th>Reaches hostile sites</th><th>Cost per success</th></tr>
+        ${Object.entries(cps).map(([k,v]) => `<tr><td>${esc(k)}</td>
+          <td>${esc(String((d.single_grade_comparison.find(s=>s.key===k)||{}).reach_hostile||"—"))}%</td>
+          <td><b>$${v}</b></td></tr>`).join("")}
+      </table>
+      <div class="muted" style="margin-top:8px">Note the free tier's $0.00 — until you value your time. Paid grades cost more per success only because they are priced higher.</div>
+
+      <div style="margin-top:16px" class="muted"><b style="color:#fff">Do these first — they are free</b></div>
+      <ol style="margin:6px 0 0;padding-left:20px;line-height:1.65">
+        ${d.deduction_steps.map(s => `<li><b>${esc(s.do)}</b><div class="muted">${esc(s.detail)}</div></li>`).join("")}
+      </ol>
+      <div class="notice info">${esc(d.deduction_order_note)}</div>
+      <div class="notice">${esc(d.cost_reality)}</div>
+      <div class="okmsg" style="margin-top:8px">${esc(d.recommendation)}</div>
+      <div class="muted" style="margin-top:8px">${esc(d.grounded)}</div>`;
+    linkify($("fallbackOut"));
+  } catch(e){ $("fallbackOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadGrade(){
+  try {
+    const d = await api("/sizing/ip-grade");
+    const bar = v => {
+      const cls = v >= 80 ? "var(--ok)" : v >= 60 ? "var(--warn)" : "var(--bad)";
+      return `<div style="display:flex;align-items:center;gap:7px">
+        <div style="flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden">
+          <div style="width:${v}%;height:100%;background:${cls};border-radius:99px"></div></div>
+        <span style="width:34px;text-align:right;font-size:12px">${v}%</span></div>`;
+    };
+    $("gradeOut").innerHTML = `
+      <div class="notice info"><b>${esc(d.advice.headline)}</b>
+        <div class="muted" style="margin-top:5px">${esc(d.advice.why)}</div></div>
+      <table style="margin-top:12px">
+        <tr><th>IP grade</th><th>Ordinary sites</th><th>Hostile sites</th><th>Google</th><th>Cost</th></tr>
+        ${d.grades.map(g => `<tr>
+          <td><b>${esc(g.label)}</b>${g.recommend ? ` <span class="tag key">recommended</span>` : ""}
+            <div class="muted" style="font-size:11.5px">${esc(g.best_stage)}</div></td>
+          <td style="width:120px">${bar(g.reach_general)}</td>
+          <td style="width:120px">${bar(g.reach_hostile)}</td>
+          <td style="width:120px">${bar(g.reach_google)}</td>
+          <td class="muted">${esc(g.cost_shape)}</td></tr>`).join("")}
+      </table>
+      <div class="muted" style="margin-top:10px">${esc(d.advice.general_vs_hostile)}</div>
+      <div class="notice">Cheapest setup that still works: ${esc(d.advice.layering)}</div>
+      <div class="muted" style="margin-top:8px">${esc(d.advice.honesty)}</div>`;
+    linkify($("gradeOut"));
+  } catch(e){ $("gradeOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadIspPrice(count){
+  if (!count || count < 1) return;
+  try {
+    const d = await api("/sizing/isp-price?count=" + count);
+    const line = r => `<tr>
+      <td><b>${esc(r.name)}</b>${r.is_dedicated ? ` <span class="tag key">unmetered</span>` : ` <span class="tag warn">capped/shared</span>`}</td>
+      <td>$${r.usd_per_ip}/IP</td>
+      <td><b>$${r.monthly_total.toLocaleString()}</b>/mo</td>
+      <td class="muted">${esc(r.bandwidth)}</td></tr>`;
+    $("ispOut").innerHTML = `
+      <div class="notice info">
+        <b>${count} good-grade residential proxies ≈ $${d.cheapest_dedicated.toLocaleString()}–$${d.dearest_dedicated.toLocaleString()}/mo</b>
+        <div class="muted" style="margin-top:5px">
+          Cheapest dedicated, unmetered: <b>$${d.cheapest_dedicated.toLocaleString()}/mo</b> ·
+          realistic middle: <b>$${d.typical_dedicated.toLocaleString()}/mo</b>
+        </div>
+      </div>
+      <table style="margin-top:12px">
+        <tr><th>Provider</th><th>Per IP</th><th>For ${count}</th><th>Bandwidth rule</th></tr>
+        ${d.dedicated.map(line).join("")}
+      </table>
+      <div class="muted" style="margin-top:10px">
+        Shared-but-cheap alternative, if you do not need 1 IP per thread:
+        <b>$${d.cheapest_shared}</b> for ${count} (${(d.cheapest_shared/count).toFixed(2)}/IP).
+      </div>
+      <table style="margin-top:8px">
+        <tr><th>Budget shared provider</th><th>Per IP</th><th>For ${count}</th><th>Rule</th></tr>
+        ${d.shared_budget.map(line).join("")}
+      </table>
+      <div class="muted" style="margin-top:10px">
+        Rates read ${esc(d.prices_read_on)}, exclude VAT, and fall with quantity. Confirm at checkout.
+        These are static, mostly-unmetered IPs, so roughly <b>1 IP = 1 thread</b> —
+        set GSA's <span class="gterm" data-gloss="thread">max threads</span> to about ${count}.
+      </div>`;
+    linkify($("ispOut"));
+  } catch(e){ $("ispOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadProviders(){  try {
+    const d = await api("/sizing/providers");
+    const a = d.advice;
+    $("szAdvice").innerHTML = `
+      <div class="notice warn">
+        <b>${esc(a.headline)}</b>
+        <div class="muted" style="margin-top:6px">${esc(a.explain)}</div>
+      </div>
+      <table style="margin-top:12px">
+        <tr><th>Route</th><th>What to buy</th></tr>
+        <tr><td><span class="gterm" data-gloss="unlimited residential">Cheapest real unmetered</span></td>
+            <td>${esc(a.recommended_first)}</td></tr>
+        <tr><td>Best send quality</td><td>${esc(a.recommended_best)}</td></tr>
+        <tr><td>Measure your real usage</td><td>${esc(a.test_first)}</td></tr>
+        <tr><td>The only true "unlimited"</td>
+            <td>${esc(a.the_only_real_unlimited)}</td></tr>
+      </table>
+      <div class="muted" style="margin-top:10px">
+        ${esc(a.kinds.static_isp)}<br>${esc(a.kinds.unlimited_rotating)}<br>${esc(a.kinds.metered_rotating)}
+      </div>
+      <table style="margin-top:14px">
+        <tr><th>Provider</th><th>True billing unit</th><th>Entry</th><th>Caution</th></tr>
+        ${d.providers.map(p => `<tr>
+          <td><b>${esc(p.name)}</b>${p.fits_unlimited_residential ? "" : ` <span class="tag warn">not unlimited</span>`}</td>
+          <td class="muted">${esc(p.billing)}</td>
+          <td>${esc(p.entry_price)}</td>
+          <td class="muted">${esc(p.caveat)}</td></tr>`).join("")}
+      </table>
+      <div class="muted" style="margin-top:8px">Prices quoted from the providers' own pages, 11 Nov 2026. They move — confirm at checkout.</div>`;
+    linkify($("szAdvice"));
+  } catch(e){ $("szAdvice").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadSteps(vol){
+  try {
+    const d = await api("/sizing/steps?daily_sends=" + vol);
+    $("szSteps").innerHTML = `
+      <div class="muted">Proxy lines paste in as <code>${esc(d.proxy_line_format)}</code>
+        (some providers give <code>${esc(d.alt_format)}</code>).</div>
+      <ol style="margin:11px 0 0;padding-left:20px;line-height:1.7">
+        ${d.steps.map(s => `<li><b>${esc(s.do)}</b><div class="muted">${esc(s.detail)}</div></li>`).join("")}
+      </ol>
+      <div class="notice">
+        ${d.warnings.map(w => esc(w)).join("<br>")}
+      </div>
+      <div class="notice info">
+        At ${vol.toLocaleString()} sends/day this needs ~<b>${d.plan.pool_entries_needed.toLocaleString()}</b>
+        pool entries to keep <b>${d.plan.threads}</b> <span class="gterm" data-gloss="usable thread">usable threads</span> fed.
+      </div>`;
+    linkify($("szSteps"));
+  } catch(e){ $("szSteps").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadLayer2(vol){
+  try {
+    const d = await api("/sizing/captcha?daily_sends=" + vol);
+    const b = d.layer2.buy;
+    const row = (label, x, tag) => !x ? "" : `<tr>
+      <td>${label} ${tag||""}</td>
+      <td><b>${esc(x.name || "GSA text recognition")}</b></td>
+      <td>${x.model ? esc(x.model) : "free"}</td>
+      <td>${x.est_monthly_usd !== undefined ? "$" + x.est_monthly_usd + "/mo" : "$0"}</td></tr>`;
+    $("szLayer2").innerHTML = `
+      <div class="row"><label class="muted">Volume</label>
+        <input id="l2Vol" type="number" value="${vol}" min="10" style="width:120px"
+               onchange="loadLayer2(Number(this.value))" /></div>
+      <table style="margin-top:12px">
+        <tr><th>Layer</th><th>Vendor</th><th>Billing</th><th>At your volume</th></tr>
+        ${row("Layer 1 — built in", b.layer_1_builtin, `<span class="tag">free</span>`)}
+        ${row("Layer 2 — <b>buy this first</b>", b.layer_2_primary, `<span class="tag key">primary</span>`)}
+        ${row("Layer 2 — <b>buy this second</b>", b.layer_2_backup, `<span class="tag key">backup</span>`)}
+        ${row("Layer 3 — optional", b.layer_3_optional_free, `<span class="tag">free</span>`)}
+        ${row("Layer 3 — optional", b.layer_3_optional_ai, `<span class="tag">ai</span>`)}
+      </table>
+      <div class="okmsg" style="margin-top:10px">
+        Two-vendor total at ${vol.toLocaleString()} sends/day: <b>$${d.layer2.two_vendor_total_monthly_usd}/mo</b>
+        (≈ ${d.layer2.solves_per_day.toLocaleString()} solves/day)
+      </div>
+      <div class="muted" style="margin-top:8px">${esc(d.layer2.why_two)}</div>
+      <div class="muted" style="margin-top:6px">${esc(d.layer2.independence_note)}</div>
+      <div class="notice info">${esc(d.layer2.ordering_rule)}</div>`;
+  } catch(e){ $("szLayer2").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function enableSources(){
+  $("szEnableMsg").textContent = "enabling…";
+  try {
+    const r = await api("/sizing/enable-sources", {method:"POST"});
+    $("szEnableMsg").innerHTML = `<span class="okmsg">${r.changed} sources enabled → ${r.enabled}/${r.total} now on</span>`;
+    szSources({enabled: r.enabled, total: r.total, disabled: r.total - r.enabled});
+  } catch(e){ $("szEnableMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+}
+
+function szSources(s){
+  const btn = $("szEnableBtn");
+  if (!btn) return;
+  btn.disabled = s.disabled === 0;
+  btn.textContent = s.disabled === 0
+    ? `All ${s.total} free sources already on`
+    : `Enable all ${s.total} free sources (${s.disabled} off)`;
+}
+
+/* ---------------------------------------------------------------- misc */
+async function explain(){
+  const ref = $("ref").value.trim(); if(!ref) return;
+  try {
+    const e = await api("/nl/explain?ref=" + encodeURIComponent(ref));
+    $("explainOut").innerHTML = `
+      <div><b>${esc(e.ref)}</b> <span class="tag">${esc(e.type)}</span></div>
+      <div class="muted" style="margin-top:6px">${esc(e.help)}</div>
+      <div class="muted" style="margin-top:6px">${esc(e.guidance)}</div>
+      ${e.range?`<div class="muted">range: ${e.range[0]}–${e.range[1]}</div>`:""}
+      ${e.allowed?`<div class="muted">allowed: ${esc(e.allowed.join(", "))}</div>`:""}`;
+  } catch(e){ $("explainOut").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function act(what){
+  try { await api("/app/"+what, {method:"POST"}); setTimeout(loadAll, 700); }
+  catch(e){ alert(e.message); }
+}
+
+$("applyBtn").onclick = applyStaged;
+
+async function loadAuthBadge(){
+  $("signout").href = API + "/logout";   // reach the API origin, not the Vercel one
+  try {
+    const r = await fetch(API + "/auth/status", {credentials:'include'});
+    const j = await r.json();
+    $("signout").style.display = (j.auth === "off") ? "none" : "inline-block";
+  } catch {}
+}
+
+loadGlossary().then(loadAll).then(loadAuthBadge);
+</script>
+</body>
+</html>
